@@ -31,10 +31,10 @@ namespace Fluoroscope
         public Section[] sections;
         CodeSection codesection;
 
-        public Decoder(Fluoroscope _fluoro, String _outname)
+        public Decoder(Fluoroscope _fluoro)
         {
             fluoro = _fluoro;
-            outname = _outname;
+            outname = "out.code.txt";
             sections = fluoro.parser.sections;
         }
 

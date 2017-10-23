@@ -33,14 +33,25 @@ namespace Fluoroscope
         public WindowsParser parser;
         public Decoder decoder;
 
-        public Fluoroscope(String filename, String outname)
+        public Fluoroscope()
+        {
+            
+            parser = new WindowsParser(this);
+            decoder = new Decoder(this);
+        }
+
+        public void setSourceFile(String filename)
         {
             source = new SourceFile(filename);      //read in file
-            
-            parser = new WindowsParser(this);            
+        }
+
+        public void parseSource()
+        {
             parser.parse();                         //parse win hdr + get section list
-            
-            decoder = new Decoder(this, outname);
+        }
+
+        public void decodeSource()
+        {
             decoder.decode();                       //decode code + data sections
         }
     }
