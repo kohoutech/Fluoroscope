@@ -17,42 +17,77 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 ----------------------------------------------------------------------------*/
 
+//10/11/16
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-//10/11/16
+using Fluoroscope.UI;
+using Origami.Win32;
 
 namespace Fluoroscope
 {
 
     class Fluoroscope
     {
+        public FluoroWindow fwindow;
         public SourceFile source;
-        public WindowsParser parser;
-        public Decoder decoder;
+        public Win32Decoder decoder;
+        public List<Section> sections;
 
-        public Fluoroscope()
+        public Fluoroscope(FluoroWindow _fwindow)
         {
-            
-            parser = new WindowsParser(this);
-            decoder = new Decoder(this);
+            fwindow = _fwindow;
         }
 
-        public void setSourceFile(String filename)
+        public void loadSourceFile(String filename)
         {
             source = new SourceFile(filename);      //read in file
+            decoder = new Win32Decoder(source);
         }
 
         public void parseSource()
         {
-            parser.parse();                         //parse win hdr + get section list
+            decoder.parse();
+            sections = decoder.sections;
         }
 
         public void decodeSource()
         {
             decoder.decode();                       //decode code + data sections
+        }
+
+        public void showExeHeaderInfo()
+        {
+            InfoWindow infoWin = new InfoWindow();
+            infoWin.setTitle("EXE Header");
+            String text = decoder.peHeader.getInfo() + "\r\n" + decoder.optionalHeader.getInfo();
+            infoWin.setText(text);
+            infoWin.Show(fwindow);
+        }
+
+        public void showSectionData(Section section)
+        {
+            InfoWindow infoWin = new InfoWindow();
+            infoWin.setTitle("Section " + section.secNum + " Data");
+            String text = section.getSectionData();
+            infoWin.setText(text);
+            infoWin.Show(fwindow);
+        }
+
+        public void showSectionCode(Section section)
+        {
+            if (section is CodeSection)
+            {
+                CodeSection codeSec = (CodeSection)section;
+                InfoWindow infoWin = new InfoWindow();
+                infoWin.setTitle("Section " + codeSec.secNum + " Code");
+                List<String> text = codeSec.disasmCode();
+                infoWin.setText(text);
+                infoWin.Show(fwindow);
+            }
         }
     }
 }
