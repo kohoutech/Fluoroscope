@@ -31,27 +31,28 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FluoroWindow));
             this.fluoroStatus = new System.Windows.Forms.StatusStrip();
+            this.fluoroStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.fluoroMenu = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.exitFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exeHdrViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.dataViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.codeViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutHelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fluoroOpenFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.fCanvas = new System.Windows.Forms.Panel();
             this.fluoroToolStrip = new System.Windows.Forms.ToolStrip();
             this.openToolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.fluoroStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exehdrToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.dataToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.codeToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.fluoroToolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.selSecDataViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.disasmCodeViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fluoroStatus.SuspendLayout();
             this.fluoroMenu.SuspendLayout();
             this.fluoroToolStrip.SuspendLayout();
@@ -66,6 +67,11 @@
             this.fluoroStatus.Size = new System.Drawing.Size(484, 22);
             this.fluoroStatus.TabIndex = 0;
             this.fluoroStatus.Text = "statusStrip1";
+            // 
+            // fluoroStatusLabel
+            // 
+            this.fluoroStatusLabel.Name = "fluoroStatusLabel";
+            this.fluoroStatusLabel.Size = new System.Drawing.Size(0, 17);
             // 
             // fluoroMenu
             // 
@@ -83,6 +89,7 @@
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openFileMenuItem,
+            this.closeFileMenuItem,
             this.toolStripSeparator2,
             this.exitFileMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
@@ -98,6 +105,13 @@
             this.openFileMenuItem.Size = new System.Drawing.Size(185, 22);
             this.openFileMenuItem.Text = "&Open Exe file";
             this.openFileMenuItem.Click += new System.EventHandler(this.openFileMenuItem_Click);
+            // 
+            // closeFileMenuItem
+            // 
+            this.closeFileMenuItem.Name = "closeFileMenuItem";
+            this.closeFileMenuItem.Size = new System.Drawing.Size(185, 22);
+            this.closeFileMenuItem.Text = "&Close Exe File";
+            this.closeFileMenuItem.Click += new System.EventHandler(this.closeFileMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
@@ -115,18 +129,35 @@
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.exeHdrViewMenuItem,
-            this.selSecDataViewMenuItem,
-            this.disasmCodeViewMenuItem});
+            this.dataViewMenuItem,
+            this.codeViewMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
             // 
             // exeHdrViewMenuItem
             // 
+            this.exeHdrViewMenuItem.Enabled = false;
             this.exeHdrViewMenuItem.Name = "exeHdrViewMenuItem";
             this.exeHdrViewMenuItem.Size = new System.Drawing.Size(212, 22);
             this.exeHdrViewMenuItem.Text = "Exe Header";
             this.exeHdrViewMenuItem.Click += new System.EventHandler(this.exeHdrViewMenuItem_Click);
+            // 
+            // dataViewMenuItem
+            // 
+            this.dataViewMenuItem.Enabled = false;
+            this.dataViewMenuItem.Name = "dataViewMenuItem";
+            this.dataViewMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.dataViewMenuItem.Text = "Selected Section Data";
+            this.dataViewMenuItem.Click += new System.EventHandler(this.selSecDataViewMenuItem_Click);
+            // 
+            // codeViewMenuItem
+            // 
+            this.codeViewMenuItem.Enabled = false;
+            this.codeViewMenuItem.Name = "codeViewMenuItem";
+            this.codeViewMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.codeViewMenuItem.Text = "Disassemble Code Section";
+            this.codeViewMenuItem.Click += new System.EventHandler(this.disasmCodeViewMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -182,14 +213,15 @@
             this.openToolStripButton.ToolTipText = "open EXE file";
             this.openToolStripButton.Click += new System.EventHandler(this.openToolStripButton_Click);
             // 
-            // fluoroStatusLabel
+            // toolStripSeparator1
             // 
-            this.fluoroStatusLabel.Name = "fluoroStatusLabel";
-            this.fluoroStatusLabel.Size = new System.Drawing.Size(0, 17);
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
             // exehdrToolStripButton
             // 
             this.exehdrToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.exehdrToolStripButton.Enabled = false;
             this.exehdrToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("exehdrToolStripButton.Image")));
             this.exehdrToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.exehdrToolStripButton.Name = "exehdrToolStripButton";
@@ -201,6 +233,7 @@
             // dataToolStripButton
             // 
             this.dataToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.dataToolStripButton.Enabled = false;
             this.dataToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("dataToolStripButton.Image")));
             this.dataToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.dataToolStripButton.Name = "dataToolStripButton";
@@ -212,6 +245,7 @@
             // codeToolStripButton
             // 
             this.codeToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.codeToolStripButton.Enabled = false;
             this.codeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("codeToolStripButton.Image")));
             this.codeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.codeToolStripButton.Name = "codeToolStripButton";
@@ -219,25 +253,6 @@
             this.codeToolStripButton.Text = "C";
             this.codeToolStripButton.ToolTipText = "disassemble code section";
             this.codeToolStripButton.Click += new System.EventHandler(this.codeToolStripButton_Click);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
-            // 
-            // selSecDataViewMenuItem
-            // 
-            this.selSecDataViewMenuItem.Name = "selSecDataViewMenuItem";
-            this.selSecDataViewMenuItem.Size = new System.Drawing.Size(212, 22);
-            this.selSecDataViewMenuItem.Text = "Selected Section Data";
-            this.selSecDataViewMenuItem.Click += new System.EventHandler(this.selSecDataViewMenuItem_Click);
-            // 
-            // disasmCodeViewMenuItem
-            // 
-            this.disasmCodeViewMenuItem.Name = "disasmCodeViewMenuItem";
-            this.disasmCodeViewMenuItem.Size = new System.Drawing.Size(212, 22);
-            this.disasmCodeViewMenuItem.Text = "Disassemble Code Section";
-            this.disasmCodeViewMenuItem.Click += new System.EventHandler(this.disasmCodeViewMenuItem_Click);
             // 
             // FluoroWindow
             // 
@@ -248,6 +263,7 @@
             this.Controls.Add(this.fluoroStatus);
             this.Controls.Add(this.fluoroToolStrip);
             this.Controls.Add(this.fluoroMenu);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.fluoroMenu;
             this.Name = "FluoroWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -285,8 +301,9 @@
         private System.Windows.Forms.ToolStripButton codeToolStripButton;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolTip fluoroToolTip;
-        private System.Windows.Forms.ToolStripMenuItem selSecDataViewMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem disasmCodeViewMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem dataViewMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem codeViewMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeFileMenuItem;
 
     }
 }

@@ -210,4 +210,26 @@
   <metadata name="fluoroToolTip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>550, 17</value>
   </metadata>
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAIAEBAQAAAABAAoAQAAJgAAACAgEAAAAAQA6AIAAE4BAAAoAAAAEAAAACAAAAABAAQAAAAAAIAA
+        AAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAgAAAgAAAAICAAIAAAACAAIAAgIAAAICAgADAwMAAAAD/AAD/
+        AAAA//8A/wAAAP8A/wD//wAA////AAAAAAAAAAAAAAAP///wAAAAAP////8AAAAP/M////AAAP/8z///
+        /wAP//zP////8A///M/////wD//8zMz///AP//zMzP//8A///M/////wD//8z/////AA//zMzM//AAAP
+        /MzMz/AAAAD/////AAAAAA////AAAAAAAAAAAAAA+B8AAPAPAADAAwAAwAMAAIABAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAACAAQAAwAMAAMADAADwDwAA+B8AACgAAAAgAAAAQAAAAAEABAAAAAAAAAIAAAAA
+        AAAAAAAAEAAAABAAAAAAAAAAAACAAACAAAAAgIAAgAAAAIAAgACAgAAAgICAAMDAwAAAAP8AAP8AAAD/
+        /wD/AAAA/wD/AP//AAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP///w
+        AAAAAAAAAAAAAAD///////8AAAAAAAAAAAD//////////wAAAAAAAAAP///////////wAAAAAAAA////
+        /////////wAAAAAAD////MzP///////wAAAAAP////zMz////////wAAAAD////8zM////////8AAAAP
+        /////MzP////////8AAAD/////zMz/////////AAAA/////8zM/////////wAAD//////MzP////////
+        8AAA//////zMzMzMz/////8AAP/////8zMzMzM//////AAD//////MzMzMzP/////wAA//////zMz///
+        //////8AAP/////8zM/////////wAAAP/////MzP////////8AAAD/////zMz/////////AAAA/////8
+        zM/////////wAAAA/////MzMzMzP////AAAAAP////zMzMzMz////wAAAAAP///8zMzMzM////AAAAAA
+        AP////////////8AAAAAAAAP///////////wAAAAAAAAAP//////////AAAAAAAAAAAA////////AAAA
+        AAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///////gf///A
+        A///AAD//gAAf/wAAD/4AAAf8AAAD+AAAAfgAAAHwAAAA8AAAAPAAAADgAAAA4AAAAGAAAABgAAAAYAA
+        AAGAAAADwAAAA8AAAAPAAAAD4AAAB+AAAAfwAAAP+AAAH/wAAD/+AAB//wAA///AA///+B///////w==
+</value>
+  </data>
 </root>

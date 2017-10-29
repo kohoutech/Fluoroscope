@@ -25,6 +25,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.IO;
 
 using Fluoroscope.UI;
 using Origami.Win32;
@@ -36,6 +37,7 @@ namespace Fluoroscope
         Fluoroscope fscope;
         List<SectionPanel> sections;
         SectionPanel selectedSection;
+        String currentPath;
 
         public FluoroWindow()
         {
@@ -45,6 +47,7 @@ namespace Fluoroscope
 
             sections = new List<SectionPanel>();
             selectedSection = null;
+            currentPath = null;
         }
 
 //-----------------------------------------------------------------------------
@@ -52,6 +55,7 @@ namespace Fluoroscope
         public void openFile(String filename)
         {
             fluoroStatusLabel.Text = "Loading...";
+            closeFile();
             fscope.loadSourceFile(filename);
             fscope.parseSource();
 
@@ -68,7 +72,9 @@ namespace Fluoroscope
             this.ClientSize = new Size(fCanvas.Width + 20, 
                 fCanvas.Height + fluoroMenu.Height + fluoroToolStrip.Height + fluoroStatus.Height + 20);
             Text = "Fluoroscope [" + filename + "]";
-            fluoroStatusLabel.Text = "Loaded";
+            fluoroStatusLabel.Text = "";
+            exeHdrViewMenuItem.Enabled = true;
+            exehdrToolStripButton.Enabled = true;
         }
 
         public void setSelectedSections(SectionPanel selected)
@@ -80,14 +86,38 @@ namespace Fluoroscope
                     selectedSection.setSelcted(false);
                 }
                 selectedSection = selected;
-                selectedSection.setSelcted(true);                
+                selectedSection.setSelcted(true);
+                dataToolStripButton.Enabled = true;
+                dataViewMenuItem.Enabled = true;
+                bool codesec = selectedSection.section.isCode();
+                codeViewMenuItem.Enabled = codesec;
+                codeToolStripButton.Enabled = codesec;
             }
+        }
+
+        public void closeFile()
+        {
+            fCanvas.Controls.Clear();
+            fscope.close();
+            exeHdrViewMenuItem.Enabled = false;
+            exehdrToolStripButton.Enabled = false;
+            dataToolStripButton.Enabled = false;
+            dataViewMenuItem.Enabled = false;
+            codeViewMenuItem.Enabled = false;
+            codeToolStripButton.Enabled = false;
         }
 
         private void showOpenFileDialog()
         {
             String filename = "";
-            fluoroOpenFileDialog.InitialDirectory = Application.StartupPath;
+            if (currentPath != null)
+            {
+                fluoroOpenFileDialog.InitialDirectory = currentPath;
+            }
+            else
+            {
+                fluoroOpenFileDialog.InitialDirectory = Application.StartupPath;                
+            }
             fluoroOpenFileDialog.FileName = "";
             fluoroOpenFileDialog.DefaultExt = "*.exe";
             fluoroOpenFileDialog.Filter = "Executable files|*.exe|DLL files|*.dll|All files|*.*";
@@ -95,6 +125,7 @@ namespace Fluoroscope
             filename = fluoroOpenFileDialog.FileName;
             if (filename.Length != 0)
             {
+                currentPath = Path.GetDirectoryName(filename);
                 openFile(filename);
             }
         }
@@ -104,6 +135,11 @@ namespace Fluoroscope
         private void openFileMenuItem_Click(object sender, EventArgs e)
         {
             showOpenFileDialog();
+        }
+
+        private void closeFileMenuItem_Click(object sender, EventArgs e)
+        {
+            closeFile();
         }
 
         private void exitFileMenuItem_Click(object sender, EventArgs e)

@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 using Fluoroscope.UI;
 using Origami.Win32;
@@ -40,24 +41,31 @@ namespace Fluoroscope
         public Fluoroscope(FluoroWindow _fwindow)
         {
             fwindow = _fwindow;
+            source = null;
+            decoder = null;
+            sections = null;
         }
 
         public void loadSourceFile(String filename)
         {
-            source = new SourceFile(filename);      //read in file
-            decoder = new Win32Decoder(source);
+            source = new SourceFile(filename);      //read in file            
+        }
+
+        public void close()
+        {
+            source = null;
+            decoder = null;
+            sections = null;
         }
 
         public void parseSource()
         {
-            decoder.parse();
-            sections = decoder.sections;
+            decoder = new Win32Decoder(source);     //other exe types could have diff decoders at this point
+            decoder.parse();                        //parse exe headers + section table
+            sections = decoder.sections;            //convenience ref
         }
 
-        public void decodeSource()
-        {
-            decoder.decode();                       //decode code + data sections
-        }
+//-----------------------------------------------------------------------------
 
         public void showExeHeaderInfo()
         {
@@ -71,7 +79,7 @@ namespace Fluoroscope
         public void showSectionData(Section section)
         {
             InfoWindow infoWin = new InfoWindow();
-            infoWin.setTitle("Section " + section.secNum + " Data");
+            infoWin.setTitle("Section [" + section.secNum + "] " + section.secName + " Data");
             String text = section.getSectionData();
             infoWin.setText(text);
             infoWin.Show(fwindow);
@@ -83,11 +91,22 @@ namespace Fluoroscope
             {
                 CodeSection codeSec = (CodeSection)section;
                 InfoWindow infoWin = new InfoWindow();
-                infoWin.setTitle("Section " + codeSec.secNum + " Code");
+                infoWin.setTitle("Section [" + section.secNum + "] " + section.secName + " Code");
                 List<String> text = codeSec.disasmCode();
                 infoWin.setText(text);
                 infoWin.Show(fwindow);
             }
+        }
+
+        public void writeDumpFile(String outname, List<String> lines)
+        {
+            StreamWriter outfile = new StreamWriter(outname);
+
+            foreach (String line in lines)
+            {
+                outfile.Write(line);
+            }
+            outfile.Close();
         }
     }
 }
