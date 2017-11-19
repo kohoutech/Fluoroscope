@@ -32,7 +32,11 @@ namespace Origami.Win32
         public PEHeader peHeader;
         public OptionalHeader optionalHeader;
         public List<Section> sections;
+
         public uint imageBase;
+        public Section exports;
+        public Section imports;
+        public Section resources;
 
         public Win32Decoder(SourceFile _source)
         {
@@ -42,7 +46,11 @@ namespace Origami.Win32
             peHeader = null;
             optionalHeader = null;
             sections = null;
+
             imageBase = 0;
+            exports = null;
+            imports = null;
+            resources = null;
         }
 
         public void setSourceFile(SourceFile _source) 
@@ -52,7 +60,7 @@ namespace Origami.Win32
 
         public void parse()
         {
-            parser.parse();                         //parse win hdr + get section list
+            parser.parse();                         //parse win hdr + get section list + data directories
         }
     }
 }

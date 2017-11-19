@@ -59,6 +59,20 @@ namespace Origami.Win32
             }
         }
 
+        public Section findSection(DataDirectory datadir)
+        {
+            Section result = null;
+            foreach (Section section in decoder.sections)
+            {
+                if ((section.memloc - section.imageBase) == datadir.rva)
+                {
+                    result = section;
+                    break;
+                }
+            }
+            return result;
+        }
+
         public void parse()
         {
             skipMSDOSHeader();
@@ -66,6 +80,10 @@ namespace Origami.Win32
             decoder.optionalHeader = OptionalHeader.load(source);
             decoder.imageBase = decoder.optionalHeader.imageBase;
             loadSectionTable();
+
+            decoder.exports = findSection(decoder.optionalHeader.dataDirectory[DataDirectory.IMAGE_DIRECTORY_ENTRY_EXPORT]);
+            decoder.imports = findSection(decoder.optionalHeader.dataDirectory[DataDirectory.IMAGE_DIRECTORY_ENTRY_IMPORT]);
+            decoder.resources = findSection(decoder.optionalHeader.dataDirectory[DataDirectory.IMAGE_DIRECTORY_ENTRY_RESOURCE]);
         }
     }
 
@@ -102,12 +120,12 @@ namespace Origami.Win32
         {
             String info = 
                 "machine = " + machine + "\r\n" +
-            "sectioncount = " + sectionCount + "\r\n" +
-            "timestamp = " + timeStamp + "\r\n" +
-            "symbol tbl ptr = " + pSymbolTable + "\r\n" +
-            "symbol count = " + symbolcount + "\r\n" +
-            "optional header size = " + optionalHeaderSize + "\r\n" +
-            "characteristics = " + characteristics;
+                "sectioncount = " + sectionCount + "\r\n" +
+                "timestamp = " + timeStamp + "\r\n" +
+                "symbol tbl ptr = " + pSymbolTable + "\r\n" +
+                "symbol count = " + symbolcount + "\r\n" +
+                "optional header size = " + optionalHeaderSize + "\r\n" +
+                "characteristics = " + characteristics;
             return info;
         }
     }
@@ -144,7 +162,7 @@ namespace Origami.Win32
         public uint SizeOfHeapCommit;
         public uint LoaderFlags;
         public uint NumberOfRvaAndSizes;
-        public uint[] dataDirectory;
+        public DataDirectory[] dataDirectory;
 
         static public OptionalHeader load(SourceFile source)
         {
@@ -180,11 +198,12 @@ namespace Origami.Win32
             header.LoaderFlags = source.getFour();
             header.NumberOfRvaAndSizes = source.getFour();
 
-            header.dataDirectory = new uint[header.NumberOfRvaAndSizes * 2];
+            header.dataDirectory = new DataDirectory[header.NumberOfRvaAndSizes];
             for (int i = 0; i < header.NumberOfRvaAndSizes; i++)
             {
-                header.dataDirectory[i * 2] = source.getFour();
-                header.dataDirectory[(i * 2) + 1] = source.getFour();
+                uint rva = source.getFour();
+                uint size = source.getFour();
+                header.dataDirectory[i] = new DataDirectory(rva, size);
             }
 
             return header;
@@ -193,37 +212,53 @@ namespace Origami.Win32
         public String getInfo()
         {
             String info =
-        "signature = " + signature + "\r\n" +
-        "MajorLinkerVersion = " + MajorLinkerVersion + "\r\n" +
-        "MinorLinkerVersion = " + MinorLinkerVersion + "\r\n" +
-        "SizeOfCode = " + SizeOfCode + "\r\n" +
-        "SizeOfInitializedData = " + SizeOfInitializedData + "\r\n" +
-        "SizeOfUninitializedData = " + SizeOfUninitializedData + "\r\n" +
-        "AddressOfEntryPoint = " + AddressOfEntryPoint + "\r\n" +
-        "BaseOfCode = " + BaseOfCode + "\r\n" +
-        "BaseOfData = " + BaseOfData + "\r\n" +
-        "ImageBase = " + imageBase.ToString("X") + "\r\n" +
-        "SectionAlignment = " + SectionAlignment + "\r\n" +
-        "FileAlignment = " + FileAlignment + "\r\n" +
-        "MajorOSVersion = " + MajorOSVersion + "\r\n" +
-        "MinorOSVersion = " + MinorOSVersion + "\r\n" +
-        "MajorImageVersion = " + MajorImageVersion + "\r\n" +
-        "MinorImageVersion = " + MinorImageVersion + "\r\n" +
-        "MajorSubsystemVersion = " + MajorSubsystemVersion + "\r\n" +
-        "MinorSubsystemVersion = " + MinorSubsystemVersion + "\r\n" +
-        "Win32VersionValue = " + Win32VersionValue + "\r\n" +
-        "SizeOfImage = " + SizeOfImage + "\r\n" +
-        "SizeOfHeaders = " + SizeOfHeaders + "\r\n" +
-        "Checksum = " + Checksum + "\r\n" +
-        "Subsystem = " + Subsystem + "\r\n" +
-        "DLLCharacteristics = " + DLLCharacteristics + "\r\n" +
-        "SizeOfStackReserve = " + SizeOfStackReserve + "\r\n" +
-        "SizeOfStackCommit = " + SizeOfStackCommit + "\r\n" +
-        "SizeOfHeapReserve = " + SizeOfHeapReserve + "\r\n" +
-        "SizeOfHeapCommit = " + SizeOfHeapCommit + "\r\n" +
-        "LoaderFlags = " + LoaderFlags + "\r\n" +
-        "NumberOfRvaAndSizes = " + NumberOfRvaAndSizes;
+                "signature = " + signature + "\r\n" +
+                "MajorLinkerVersion = " + MajorLinkerVersion + "\r\n" +
+                "MinorLinkerVersion = " + MinorLinkerVersion + "\r\n" +
+                "SizeOfCode = " + SizeOfCode + "\r\n" +
+                "SizeOfInitializedData = " + SizeOfInitializedData + "\r\n" +
+                "SizeOfUninitializedData = " + SizeOfUninitializedData + "\r\n" +
+                "AddressOfEntryPoint = " + AddressOfEntryPoint + "\r\n" +
+                "BaseOfCode = " + BaseOfCode + "\r\n" +
+                "BaseOfData = " + BaseOfData + "\r\n" +
+                "ImageBase = " + imageBase.ToString("X") + "\r\n" +
+                "SectionAlignment = " + SectionAlignment + "\r\n" +
+                "FileAlignment = " + FileAlignment + "\r\n" +
+                "MajorOSVersion = " + MajorOSVersion + "\r\n" +
+                "MinorOSVersion = " + MinorOSVersion + "\r\n" +
+                "MajorImageVersion = " + MajorImageVersion + "\r\n" +
+                "MinorImageVersion = " + MinorImageVersion + "\r\n" +
+                "MajorSubsystemVersion = " + MajorSubsystemVersion + "\r\n" +
+                "MinorSubsystemVersion = " + MinorSubsystemVersion + "\r\n" +
+                "Win32VersionValue = " + Win32VersionValue + "\r\n" +
+                "SizeOfImage = " + SizeOfImage + "\r\n" +
+                "SizeOfHeaders = " + SizeOfHeaders + "\r\n" +
+                "Checksum = " + Checksum + "\r\n" +
+                "Subsystem = " + Subsystem + "\r\n" +
+                "DLLCharacteristics = " + DLLCharacteristics + "\r\n" +
+                "SizeOfStackReserve = " + SizeOfStackReserve + "\r\n" +
+                "SizeOfStackCommit = " + SizeOfStackCommit + "\r\n" +
+                "SizeOfHeapReserve = " + SizeOfHeapReserve + "\r\n" +
+                "SizeOfHeapCommit = " + SizeOfHeapCommit + "\r\n" +
+                "LoaderFlags = " + LoaderFlags + "\r\n" +
+                "NumberOfRvaAndSizes = " + NumberOfRvaAndSizes;
             return info;
+        }
+    }
+
+    public class DataDirectory
+    {
+        public static int IMAGE_DIRECTORY_ENTRY_EXPORT = 0;
+        public static int IMAGE_DIRECTORY_ENTRY_IMPORT = 1;
+        public static int IMAGE_DIRECTORY_ENTRY_RESOURCE = 2;
+
+        public uint rva;
+        public uint size;
+
+        public DataDirectory(uint _rva, uint _size)
+        {
+            rva = _rva;
+            size = _size;
         }
     }
 }

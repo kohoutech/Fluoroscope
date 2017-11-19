@@ -90,12 +90,12 @@ namespace Origami.Win32
         public uint flags;
 
         public uint imageBase;
-        public uint[] sourceBuf;
+        public byte[] sourceBuf;
 
 //using a factory method because we don't know what type of section it is until we read the section header
         public static Section getSection(Win32Decoder decoder, SourceFile source, int _secnum)
         {
-            String sectionName = source.getString(8);   
+            String sectionName = source.getAsciiString(8);   
          
             uint memsize = source.getFour();
             uint memloc = source.getFour();
@@ -199,6 +199,8 @@ namespace Origami.Win32
         {
             sourceBuf = null;
         }
+
+
 
         public String getSectionData()
         {
