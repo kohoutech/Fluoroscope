@@ -1,2 +1,2 @@
 # Fluoroscope
-an executable file decoder
+an executable file viewer

@@ -1,6 +1,6 @@
 ﻿/* ----------------------------------------------------------------------------
-Fluoroscope : an executable file decoder
-Copyright (C) 1998-2017  George E Greaney
+Fluoroscope : an executable file viewer
+Copyright (C) 1998-2018  George E Greaney
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -34,35 +34,22 @@ namespace Fluoroscope
     class Fluoroscope
     {
         public FluoroWindow fwindow;
-        public SourceFile source;
-        public Win32Decoder decoder;
-        public List<Section> sections;
+        public Win32Exe winexe;
 
         public Fluoroscope(FluoroWindow _fwindow)
         {
             fwindow = _fwindow;
-            source = null;
-            decoder = null;
-            sections = null;
+            winexe = null;
         }
 
-        public void loadSourceFile(String filename)
+        public void openSourceFile(String filename)
         {
-            source = new SourceFile(filename);      //read in file            
+            winexe = Win32Reader.readExe(filename);      //read in file            
         }
 
-        public void close()
+        public void closeSourceFile()
         {
-            source = null;
-            decoder = null;
-            sections = null;
-        }
-
-        public void parseSource()
-        {
-            decoder = new Win32Decoder(source);     //other exe types could have diff decoders at this point
-            decoder.parse();                        //parse exe headers + section table
-            sections = decoder.sections;            //convenience ref
+            winexe = null;
         }
 
 //-----------------------------------------------------------------------------
@@ -71,7 +58,7 @@ namespace Fluoroscope
         {
             InfoWindow infoWin = new InfoWindow();
             infoWin.setTitle("EXE Header");
-            String text = decoder.peHeader.getInfo() + "\r\n" + decoder.optionalHeader.getInfo();
+            String text = winexe.peHeader.getInfo() + "\r\n" + winexe.optHeader.getInfo();
             infoWin.setText(text);
             infoWin.Show(fwindow);
         }
@@ -80,7 +67,7 @@ namespace Fluoroscope
         {
             InfoWindow infoWin = new InfoWindow();
             infoWin.setTitle("Section [" + section.secNum + "] " + section.secName + " Data");
-            String text = section.getSectionData();
+            String text = section.displayData();
             infoWin.setText(text);
             infoWin.Show(fwindow);
         }

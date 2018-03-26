@@ -1,6 +1,6 @@
 ﻿/* ----------------------------------------------------------------------------
-Origami Win32 Library
-Copyright (C) 1998-2017  George E Greaney
+Origami Asm32 Library
+Copyright (C) 1998-2018  George E Greaney
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -22,14 +22,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Origami.Win32
+namespace Origami.Asm32
 {
-    class Win32Exception : Exception
+    class Instruction0F
     {
-        public Win32Exception(string message)
-            : base(message)
-        {
-        }
-
     }
 }

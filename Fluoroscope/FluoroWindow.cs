@@ -1,6 +1,6 @@
 ﻿/* ----------------------------------------------------------------------------
-Fluoroscope : an executable file decoder
-Copyright (C) 1998-2017  George E Greaney
+Fluoroscope : an executable file viewer
+Copyright (C) 1998-2018  George E Greaney
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -56,11 +56,10 @@ namespace Fluoroscope
         {
             fluoroStatusLabel.Text = "Loading...";
             closeFile();
-            fscope.loadSourceFile(filename);
-            fscope.parseSource();
+            fscope.openSourceFile(filename);            
 
             Point panelPos = new Point(0, 0);
-            foreach (Section section in fscope.sections)
+            foreach (Section section in fscope.winexe.sections)
             {
                 SectionPanel panel = new SectionPanel(this, section);
                 sections.Add(panel);
@@ -98,7 +97,7 @@ namespace Fluoroscope
         public void closeFile()
         {
             fCanvas.Controls.Clear();
-            fscope.close();
+            fscope.closeSourceFile();
             exeHdrViewMenuItem.Enabled = false;
             exehdrToolStripButton.Enabled = false;
             dataToolStripButton.Enabled = false;
@@ -110,19 +109,20 @@ namespace Fluoroscope
         private void showOpenFileDialog()
         {
             String filename = "";
-            if (currentPath != null)
-            {
-                fluoroOpenFileDialog.InitialDirectory = currentPath;
-            }
-            else
-            {
-                fluoroOpenFileDialog.InitialDirectory = Application.StartupPath;                
-            }
-            fluoroOpenFileDialog.FileName = "";
-            fluoroOpenFileDialog.DefaultExt = "*.exe";
-            fluoroOpenFileDialog.Filter = "Executable files|*.exe|DLL files|*.dll|All files|*.*";
-            fluoroOpenFileDialog.ShowDialog();
-            filename = fluoroOpenFileDialog.FileName;
+            //if (currentPath != null)
+            //{
+            //    fluoroOpenFileDialog.InitialDirectory = currentPath;
+            //}
+            //else
+            //{
+            //    fluoroOpenFileDialog.InitialDirectory = Application.StartupPath;                
+            //}
+            //fluoroOpenFileDialog.FileName = "";
+            //fluoroOpenFileDialog.DefaultExt = "*.exe";
+            //fluoroOpenFileDialog.Filter = "Executable files|*.exe|DLL files|*.dll|All files|*.*";
+            //fluoroOpenFileDialog.ShowDialog();
+            //filename = fluoroOpenFileDialog.FileName;
+            filename = "test.exe";
             if (filename.Length != 0)
             {
                 currentPath = Path.GetDirectoryName(filename);
@@ -168,7 +168,7 @@ namespace Fluoroscope
 
         private void aboutHelpMenuItem_Click(object sender, EventArgs e)
         {
-            String msg = "Fluoroscope\nversion 1.0.0\n" + "\xA9 Origami Software 1998-2017\n" + "http://origami.kohoutech.com";
+            String msg = "Fluoroscope\nversion 1.1.0\n" + "\xA9 Origami Software 1998-2018\n" + "http://origami.kohoutech.com";
             MessageBox.Show(msg, "About");
         }
 
