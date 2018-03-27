@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------------
+﻿/* ----------------------------------------------------------------------------
 Origami Win32 Library
 Copyright (C) 1998-2018  George E Greaney
 
@@ -112,7 +112,7 @@ namespace Origami.Win32
                     asmLine.Append("            ");                 //blank addr field
                     for (int i = 6; i < instrlen; i++)
                     {
-                        asmLine.Append(instrBytes[i].ToString("X2"));   //extra bytes
+                        asmLine.Append(instrBytes[i].ToString("X2"));    //extra bytes
                         if (i < (instrlen - 1))
                         {
                             asmLine.Append(" ");
