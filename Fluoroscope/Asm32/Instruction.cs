@@ -33,6 +33,22 @@ namespace Origami.Asm32
         public Operand op1;
         public Operand op2;
         public Operand op3;
+
+        public int len;
+        public int opcount;
+        public List<int> bytes;
+
+        public Instruction () 
+        {
+            len = 0;
+            opcount = 0;
+            bytes = new List<int>();
+        }
+
+        public List<int> getBytes()
+        {
+            return bytes;
+        }
     }
 
 //- arithmetic ----------------------------------------------------------------
@@ -42,6 +58,7 @@ namespace Origami.Asm32
         bool carry;
 
         public Add(Operand _op1, Operand _op2, bool _carry)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
@@ -59,6 +76,7 @@ namespace Origami.Asm32
         bool borrow;
 
         public Subtract(Operand _op1, Operand _op2, bool _borrow)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
@@ -74,6 +92,7 @@ namespace Origami.Asm32
     public class Multiply : Instruction
     {
         public Multiply(Operand _op1, Operand _op2)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
@@ -83,6 +102,7 @@ namespace Origami.Asm32
     public class Divide : Instruction
     {
         public Divide(Operand _op1, Operand _op2)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
@@ -92,6 +112,7 @@ namespace Origami.Asm32
     public class Negate : Instruction
     {
         public Negate(Operand _op1, Operand _op2)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
@@ -101,6 +122,7 @@ namespace Origami.Asm32
     public class Increment : Instruction
     {
         public Increment(Operand _op1)
+            : base()
         {
             op1 = _op1;            
         }
@@ -114,6 +136,7 @@ namespace Origami.Asm32
     public class Decrement : Instruction
     {
         public Decrement(Operand _op1)
+            : base()
         {
             op1 = _op1;
         }
@@ -129,6 +152,7 @@ namespace Origami.Asm32
     public class Not : Instruction
     {
         public Not(Operand _op1, Operand _op2)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
@@ -138,6 +162,7 @@ namespace Origami.Asm32
     public class And : Instruction
     {
         public And(Operand _op1, Operand _op2)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
@@ -151,6 +176,7 @@ namespace Origami.Asm32
     public class Or : Instruction
     {
         public Or(Operand _op1, Operand _op2)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
@@ -164,6 +190,7 @@ namespace Origami.Asm32
     public class Xor : Instruction
     {
         public Xor(Operand _op1, Operand _op2)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
@@ -194,7 +221,8 @@ namespace Origami.Asm32
 
         MODE mode;
 
-        public AsciiAdjust(MODE _mode) 
+        public AsciiAdjust(MODE _mode)
+            : base() 
         {
             mode = _mode;
         }
@@ -210,7 +238,8 @@ namespace Origami.Asm32
 
         MODE mode;
 
-        public DecimalAdjust(MODE _mode) 
+        public DecimalAdjust(MODE _mode)
+            : base() 
         {
             mode = _mode;
         }
@@ -226,6 +255,7 @@ namespace Origami.Asm32
     public class Push : Instruction
     {
         public Push(Operand _op1)
+            : base()
         {
             op1 = _op1;
         }
@@ -239,6 +269,7 @@ namespace Origami.Asm32
     public class Pop : Instruction
     {
         public Pop(Operand _op1)
+            : base()
         {
             op1 = _op1;
         }
@@ -254,6 +285,7 @@ namespace Origami.Asm32
     public class Compare : Instruction
     {
         public Compare(Operand _op1, Operand _op2)
+            : base()
         {
             op1 = _op1;
             op2 = _op2;
