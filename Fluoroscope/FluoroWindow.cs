@@ -122,7 +122,7 @@ namespace Fluoroscope
             //fluoroOpenFileDialog.Filter = "Executable files|*.exe|DLL files|*.dll|All files|*.*";
             //fluoroOpenFileDialog.ShowDialog();
             //filename = fluoroOpenFileDialog.FileName;
-            filename = "test.exe";
+            filename = "test.dll";
             if (filename.Length != 0)
             {
                 currentPath = Path.GetDirectoryName(filename);

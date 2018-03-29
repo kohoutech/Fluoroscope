@@ -41,7 +41,35 @@ namespace Origami.Asm32
             val = _val;
             size = _size;
         }
+
+        public override string ToString()
+        {
+            String result = "";
+            if (size == OPSIZE.Byte)
+            {
+                uint b = val;
+                bool negative = false;
+                if (b > 0x80)
+                {
+                    b = 0x100 - b;
+                    negative = true;
+                }
+                result = b.ToString("X");
+                if (b > 0x09) result = result + "h";
+                if (Char.IsLetter(result[0]))
+                {
+                    result = "0" + result;
+                }
+                result = (negative ? "-" : "+") + result;
+            }
+            else
+            {
+               result =  val.ToString("X8") + "h";
+            }
+            return result;
+        }
     }
+
 
 //- register ------------------------------------------------------------------
 
@@ -110,6 +138,30 @@ namespace Origami.Asm32
             regxmm = rxmm;
         }
 
+        String[] reg8s = { "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH", "None" };
+        String[] reg16s =  { "AX", "CX", "DX", "BX", "SP", "BP", "SI", "DI", "None" };
+        String[] reg32s = { "EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI", "None" };
+        String[] regMMs = { "MM0", "MM1", "MM2", "MM3", "MM4", "MM5", "MM6", "MM7", "None" };
+        String[] regXMMs = { "XMM0", "XMM1", "XMM2", "XMM3", "XMM4", "XMM5", "XMM6", "XMM7", "None" };
+
+        public override string ToString()
+        {
+            String result = "???";
+            switch (size)
+            {
+                case 8 : result = reg8s[(int)reg8];
+                    break;
+                case 16: result = reg16s[(int)reg16];
+                    break;
+                case 32: result = reg32s[(int)reg32];
+                    break;
+                case 1: result = regMMs[(int)regmm];
+                    break;
+                case 2: result = regXMMs[(int)regxmm];
+                    break;
+            }
+            return result;
+        }
     }
 
 //- register ------------------------------------------------------------------
@@ -126,12 +178,82 @@ namespace Origami.Asm32
         {
             seg = _seg;
         }
+
+        String[] segstr = { "ES", "CS", "SS", "DS", "FS", "GS", "None" };
+
+        public override string ToString()
+        {
+            return segstr[(int)seg];
+        }
+
     }
 
 //- memory --------------------------------------------------------------------
 
     public class Memory : Operand
     {
+        public Register f1;
+        public Register f2;
+        public int mult;
+        public Immediate f3;
+        public OPSIZE size;
+
+        public Memory(Register _f1, Register _f2, int _mult, Immediate _f3, OPSIZE _size)
+        {
+            f1 = _f1;
+            f2 = _f2;
+            mult = _mult;
+            f3 = _f3;
+            size = _size;
+        }
+
+        public String getSizePtrStr(Operand.OPSIZE size)
+        {
+        //    if (operandSizeOverride && (size == Operand.OPSIZE.DWord)) size = Operand.OPSIZE.Word;
+
+            String result = "???";
+            if (size == Operand.OPSIZE.Byte) result = "byte ptr ";
+            if (size == Operand.OPSIZE.Word) result = "word ptr ";
+            if (size == Operand.OPSIZE.DWord) result = "dword ptr ";
+            if (size == Operand.OPSIZE.QWord) result = "qword ptr ";
+            if (size == Operand.OPSIZE.FWord) result = "fword ptr ";
+            if (size == Operand.OPSIZE.TByte) result = "tbyte ptr ";
+            if (size == Operand.OPSIZE.MM) result = "mmword ptr ";
+            if (size == Operand.OPSIZE.XMM) result = "xmmword ptr ";
+            if (size == Operand.OPSIZE.None) result = "";
+            return result;
+        }
+
+        public override string ToString()
+        {
+            String result = "";
+            if (f1 != null)
+            {
+                result = f1.ToString();
+            }
+            if (f2 != null)
+            {
+                if (result.Length > 0)
+                {
+                    result += "+";
+                }
+                result += f2.ToString();
+            }
+            if (mult > 1)
+            {
+                result += ("*" + mult.ToString());
+            }
+            if ((f3 != null) && (f3.val > 0))
+            {
+                if (result.Length > 0)
+                {
+                    result += "+";
+                }
+                result += f3.ToString();
+            }
+            result = getSizePtrStr(size) + "[" + result + "]";
+            return result;
+        }
     }
 
 }

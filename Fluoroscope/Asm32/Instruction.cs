@@ -34,13 +34,11 @@ namespace Origami.Asm32
         public Operand op2;
         public Operand op3;
 
-        public int len;
         public int opcount;
         public List<int> bytes;
 
         public Instruction () 
         {
-            len = 0;
             opcount = 0;
             bytes = new List<int>();
         }
@@ -60,6 +58,7 @@ namespace Origami.Asm32
         public Add(Operand _op1, Operand _op2, bool _carry)
             : base()
         {
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
             carry = _carry;
@@ -78,6 +77,7 @@ namespace Origami.Asm32
         public Subtract(Operand _op1, Operand _op2, bool _borrow)
             : base()
         {
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
             borrow = _borrow;
@@ -94,6 +94,7 @@ namespace Origami.Asm32
         public Multiply(Operand _op1, Operand _op2)
             : base()
         {
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
         }
@@ -104,6 +105,7 @@ namespace Origami.Asm32
         public Divide(Operand _op1, Operand _op2)
             : base()
         {
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
         }
@@ -124,6 +126,7 @@ namespace Origami.Asm32
         public Increment(Operand _op1)
             : base()
         {
+            opcount = 1;
             op1 = _op1;            
         }
 
@@ -138,6 +141,7 @@ namespace Origami.Asm32
         public Decrement(Operand _op1)
             : base()
         {
+            opcount = 1;
             op1 = _op1;
         }
 
@@ -164,6 +168,7 @@ namespace Origami.Asm32
         public And(Operand _op1, Operand _op2)
             : base()
         {
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
         }
@@ -178,9 +183,11 @@ namespace Origami.Asm32
         public Or(Operand _op1, Operand _op2)
             : base()
         {
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
         }
+
         public override string ToString()
         {
             return "OR";
@@ -192,9 +199,11 @@ namespace Origami.Asm32
         public Xor(Operand _op1, Operand _op2)
             : base()
         {
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
         }
+
         public override string ToString()
         {
             return "XOR";
@@ -224,8 +233,10 @@ namespace Origami.Asm32
         public AsciiAdjust(MODE _mode)
             : base() 
         {
+            opcount = 0;
             mode = _mode;
         }
+
         public override string ToString()
         {
             return (mode == MODE.AAA) ? "AAA" : "AAS";
@@ -241,6 +252,7 @@ namespace Origami.Asm32
         public DecimalAdjust(MODE _mode)
             : base() 
         {
+            opcount = 0;
             mode = _mode;
         }
 
@@ -257,6 +269,7 @@ namespace Origami.Asm32
         public Push(Operand _op1)
             : base()
         {
+            opcount = 1;
             op1 = _op1;
         }
 
@@ -271,6 +284,7 @@ namespace Origami.Asm32
         public Pop(Operand _op1)
             : base()
         {
+            opcount = 1;
             op1 = _op1;
         }
 
@@ -287,6 +301,7 @@ namespace Origami.Asm32
         public Compare(Operand _op1, Operand _op2)
             : base()
         {
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
         }
@@ -434,4 +449,19 @@ namespace Origami.Asm32
     public class NoOp : Instruction
     {
     }
+
+    public class UnknownOp : Instruction
+    {
+        public UnknownOp()
+            : base()
+        {
+            opcount = 0;            
+        }
+
+        public override string ToString()
+        {
+            return "???";
+        }
+    }
+
 }

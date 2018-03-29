@@ -31,13 +31,12 @@ namespace Origami.Asm32
 {
     class i32Disasm
     {
-        const int MAXINSTRLEN = 20;
+        public readonly int MAXINSTRLEN = 20;
 
         public byte[] srcBuf;           //the bytes being disassembled
         public uint srcpos;             //cur pos in source buf
         public uint codeaddr;           //cur addr of instr in mem
-        public uint[] instrBytes;       //we store decoded bytes here for printing purposes
-        public uint instrLen;           //how many bytes stored
+        public List<int> instrBytes;    //the bytes that have been decoded for this instruction        
         
         public String opcode;
         public int opcount;
@@ -57,9 +56,8 @@ namespace Origami.Asm32
         {
             srcBuf = _source;           //set source buf + pos in buf when we start disassembling
             srcpos = _srcpos;           //source pos can be changed later if we need to skip over some bytes
-            
-            instrBytes = new uint[MAXINSTRLEN];
-            instrLen = 0;
+
+            instrBytes = new List<int>();            
 
             codeaddr = 0;
             opcount = 0;
@@ -76,8 +74,8 @@ namespace Origami.Asm32
         public Instruction getInstr(uint _codepos)
         {
             Instruction instr = null;
+            instrBytes = new List<int>();
 
-            instrLen = 0;
             codeaddr = _codepos;
             opcount = 0;
             segprefix = Instruction.SEGPREFIX.None;
@@ -114,31 +112,31 @@ namespace Origami.Asm32
             }
             else if ((b >= 0x60) && (b <= 0x6f))
             {
-                op6x(b);
+                //op6x(b);
             }
             else if ((b >= 0x70) && (b <= 0x7f))
             {
-                op7x(b);
+                //op7x(b);
             }
             else if ((b >= 0x80) && (b <= 0x8f))
             {
-                op8x(b);
+                //op8x(b);
             }
             else if ((b >= 0x90) && (b <= 0x9f))
             {
-                op9x(b);
+                //op9x(b);
             }
             else if ((b >= 0xa0) && (b <= 0xaf))
             {
-                opax(b);
+                //opax(b);
             }
             else if ((b >= 0xb0) && (b <= 0xbf))
             {
-                opbx(b);
+                //opbx(b);
             }
             else if ((b >= 0xc0) && (b <= 0xcf))
             {
-                opcx(b);
+                //opcx(b);
             }
             else if ((b >= 0xd0) && (b <= 0xd7))
             {
@@ -150,13 +148,20 @@ namespace Origami.Asm32
             }
             else if ((b >= 0xe0) && (b <= 0xef))
             {
-                opex(b);
+                //opex(b);
             }
             else if ((b >= 0xf0) && (b <= 0xff))
             {
-                opfx(b);
+                //opfx(b);
             }
             if ("lock ".Equals(lockprefix)) opcode = lockprefix + opcode;
+
+            if (instr == null)
+            {
+                instr = new UnknownOp();
+            }
+
+            instr.bytes = instrBytes;
 
             return instr;
         }
@@ -166,14 +171,14 @@ namespace Origami.Asm32
         public uint getNextByte()
         {
             uint b = (uint)srcBuf[srcpos++];
-            instrBytes[instrLen++] = b;
+            instrBytes.Add((int)b);
             codeaddr++;
             return b;
         }
 
 //- prefixing -----------------------------------------------------------------
 
-        readonly String[] seg16 = { "es", "cs", "ss", "ds", "fs", "gs", "??", "??" };
+        //readonly String[] seg16 = { "es", "cs", "ss", "ds", "fs", "gs", "??", "??" };
         
         //3 prefix groups, successive bytes in the same group will overwrite prev prefix byte
         public void setPrefix(uint b)
@@ -194,80 +199,88 @@ namespace Origami.Asm32
             if (b == 0x67) addressSizeOverride = true;            
         }
 
-        public String getSizePtrStr(Operand.OPSIZE size)
-        {
-            if (operandSizeOverride && (size == Operand.OPSIZE.DWord)) size = Operand.OPSIZE.Word;
-
-            String result = "???";
-            if (size == Operand.OPSIZE.Byte) result = "byte ptr ";
-            if (size == Operand.OPSIZE.Word) result = "word ptr ";
-            if (size == Operand.OPSIZE.DWord) result = "dword ptr ";
-            if (size == Operand.OPSIZE.QWord) result = "qword ptr ";
-            if (size == Operand.OPSIZE.FWord) result = "fword ptr ";
-            if (size == Operand.OPSIZE.TByte) result = "tbyte ptr ";
-            if (size == Operand.OPSIZE.MM) result = "mmword ptr ";
-            if (size == Operand.OPSIZE.XMM) result = "xmmword ptr ";
-            if (size == Operand.OPSIZE.None) result = "";
-            return result;
-        }
-
 //- addressing ----------------------------------------------------------------
 
-        readonly String[] sibscale = { "", "*2", "*4", "*8" };
+        readonly int[] sibscale = { 1, 2, 4, 8 };
 
-        public String getSib(uint mode, uint rm)
+        public Memory getSib(uint mode, uint rm, Operand.OPSIZE size)
         {
-            String result = "???";
+            Memory result = null;
+            Immediate imm = null;
             //String optseg = (!"ds:".Equals(segprefix)) ? segprefix : "";
-            //switch (rm)
-            //{
-            //    case 0x00:
-            //    case 0x01:
-            //    case 0x02:
-            //    case 0x03:
-            //    case 0x06:
-            //    case 0x07:
+            switch (rm)
+            {
+                case 0x00:
+                case 0x01:
+                case 0x02:
+                case 0x03:
+                case 0x06:
+                case 0x07:
             //        result = optseg + "[" + reg32[rm];
-            //        break;
-            //    case 0x04:
-            //        uint sib = getNextByte();
-            //        uint scale = (sib / 0x40) % 0x04;
-            //        uint siba = (sib % 0x40) / 0x08;
-            //        uint sibb = (sib % 0x08);
-            //        if (siba != 0x04)       //--100---
-            //        {
-            //            if ((sibb == 0x05) && (mode == 00))   //-----101
-            //            {
-            //                result = "[" + reg32[siba] + sibscale[scale] + "+" + addr32();                            
-            //            }
-            //            else
-            //            {
+                    imm = new Immediate(0, size);
+                    result = new Memory(getReg(Operand.OPSIZE.DWord, rm), null, 1, imm, size);
+                    break;
+                case 0x04:
+                    uint sib = getNextByte();               
+                    uint scale = (sib / 0x40) % 0x04;       //xx------
+                    uint siba = (sib % 0x40) / 0x08;        //--xxx---
+                    uint sibb = (sib % 0x08);               //-----xxx
+                    if (siba != 0x04)       //--100---
+                    {
+                        if ((sibb == 0x05) && (mode == 00))   //-----101
+                        {
+            //                result = "[" + reg32[siba] + sibscale[scale] + "+" + addr32();  
+                            imm = new Immediate(addr32(), size);
+                            result = new Memory(null, getReg(Operand.OPSIZE.DWord, siba), sibscale[scale], imm, size);
+                        }
+                        else
+                        {
             //                result = "[" + reg32[sibb] + "+" + reg32[siba] + sibscale[scale];
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if ((sibb == 0x05) && (mode == 00))  //-----101
-            //            {
+                            result = new Memory(getReg(Operand.OPSIZE.DWord, sibb), getReg(Operand.OPSIZE.DWord, siba), 
+                                sibscale[scale], null, size);
+                        }
+                    }
+                    else
+                    {
+                        if ((sibb == 0x05) && (mode == 00))  //-----101
+                        {
             //                result = segprefix + "[" + addr32();
-            //            }
-            //            else
-            //            {
+                            imm = new Immediate(addr32(), size);
+                            result = new Memory(null, null, 1, imm, size);
+                        }
+                        else
+                        {
             //                result = "[" + reg32[sibb];
-            //            }
-            //        }
-            //        break;
-            //    case 0x05:
-            //        if (mode == 0x00)
-            //        {
+                            result = new Memory(getReg(Operand.OPSIZE.DWord, sibb), null, 1, null, size);
+                        }
+                    }
+                    break;
+                case 0x05:
+                    if (mode == 0x00)
+                    {
             //            result = segprefix + "[" + addr32();
-            //        }
-            //        else
-            //        {
+                        imm = new Immediate(addr32(), size);
+                        result = new Memory(null, null, 1, imm, size);
+                    }
+                    else
+                    {
             //            result = "[" + getReg(Operand.OPSIZE.DWord, rm);
-            //        }
-            //        break;
-            //}
+                        result = new Memory(getReg(Operand.OPSIZE.DWord, rm), null, 1, null, size);
+                    }
+                    break;
+            }
+
+            if (mode == 0x01)
+            {
+                imm = new Immediate(getOfs(Operand.OPSIZE.Byte), Operand.OPSIZE.Byte);
+                result.f3 = imm;
+            }
+            if (mode == 0x02)
+            {
+                imm = new Immediate(getOfs(Operand.OPSIZE.DWord), Operand.OPSIZE.DWord);
+                result.f3 = imm;
+            }
+
             return result;
         }
 
@@ -279,13 +292,15 @@ namespace Origami.Asm32
             switch (mode)
             {
                 case 0x00:
-                    //result = getSizePtrStr(size) + getSib(mode, rm) + "]";
+                    result = getSib(mode, rm, size);
                     break;
                 case 0x01:
                     //result = getSizePtrStr(size) + getSib(mode, rm) + getOfs(Operand.OPSIZE.Byte) + "]";
+                    result = getSib(mode, rm, size);
                     break;
                 case 0x02:
                     //result = getSizePtrStr(size) + getSib(mode, rm) + getOfs(Operand.OPSIZE.DWord) + "]";
+                    result = getSib(mode, rm, size);
                     break;
                 case 0x03:
                     result = getReg(size, rm);
@@ -373,7 +388,7 @@ namespace Origami.Asm32
                 }                
             }
 
-            if (blo == 0x06)
+            if (blo == 0x06)        //0x06, 0x0e, 0x16, 0x1e
             {
                 op1 = new Segment((Segment.SEG)bhi);
                 instr = new Push(op1);            
@@ -382,17 +397,17 @@ namespace Origami.Asm32
 
             if ((blo == 0x07))
             {
-                if (bhi < 0x03) {
+                if (bhi < 0x03) {                                   //0x07, 0x0f, 0x17, 0x1f
                         op1 = new Segment((Segment.SEG)bhi);
                         instr  = new Pop(op1);
                 }
                 else if (bhi < 0x06)
                 {
-                    instr = new DecimalAdjust((DecimalAdjust.MODE)(bhi - 4));
+                    instr = new DecimalAdjust((DecimalAdjust.MODE)(bhi - 4));       //0x27, 0x2f
                 }
                 else
                 {
-                    instr = new AsciiAdjust((AsciiAdjust.MODE)(bhi - 6));
+                    instr = new AsciiAdjust((AsciiAdjust.MODE)(bhi - 6));           //0x37, 0x3f
                 }
             }
             return instr;
@@ -1944,44 +1959,23 @@ namespace Origami.Asm32
             return imm;
         }
 
-        public String getOfs(Operand.OPSIZE size)
+        public uint getOfs(Operand.OPSIZE size)
         {
-            String result = "???";
-    //        if (size == OPSIZE.Byte) result = ofs8();
-    //        if (size == OPSIZE.DWord) result = ofs32();
+            uint result = 0;
+            if (size == Operand.OPSIZE.Byte) result = ofs8();
+            if (size == Operand.OPSIZE.DWord) result = ofs32();
             return result;
         }
 
-    //    public String ofs8()   
-    //    {
-    //        uint b = getNextByte();
-    //        String result = "";
-    //        if (b > 0x00)
-    //        {
-    //            bool negative = false;
-    //            if (b > 0x80)
-    //            {
-    //                b = 0x100 - b;
-    //                negative = true;
-    //            }
-    //            result = b.ToString("X");
-    //            if (b > 0x09) result = result + "h";
-    //            if (Char.IsLetter(result[0]))
-    //            {
-    //                result = "0" + result;
-    //            }
-    //            result = (negative ? "-" : "+") + result;
-    //        }
-    //        return result;
-    //    }
+        public uint ofs8()   
+        {
+            return getNextByte();            
+        }
 
-    //    public String ofs32()
-    //    {
-    //        uint sum = getNextDWord();
-    //        String result = sum.ToString("X8");
-    //        if (sum > 0x09) result = result + "h";
-    //        return "+" + result;
-    //    }
+        public uint ofs32()
+        {
+            return getNextDWord();
+        }
 
 
     //    public String rel8()
@@ -2004,12 +1998,10 @@ namespace Origami.Asm32
     //        return result;
     //    }
 
-        public String addr32()          //mem addrs aren't prefixed with '0'
+        public uint addr32()          //mem addrs aren't prefixed with '0'
         {
-            String result = "???";
-            //        uint sum = getNextDWord();
-    //        String result = sum.ToString("X8") + "h";        
-            return result;
+            uint sum = getNextDWord();
+            return sum;
         }
 
     //    public String absolute()   //6 bytes -> ssss:aaaaaaaa

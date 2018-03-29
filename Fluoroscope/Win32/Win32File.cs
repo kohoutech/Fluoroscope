@@ -158,6 +158,7 @@ namespace Origami.Win32
             }
 
             section.imageBase = exefile.optHeader.imageBase;
+            section.memloc += section.imageBase;
             section.data = source.getRange(fileloc, filesize);          //load section data
 
             return section;

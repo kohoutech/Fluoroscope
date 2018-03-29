@@ -59,11 +59,11 @@ namespace Origami.Win32
 
             uint codeaddr = memloc;         //starting pos of code in mem, used for instr addrs
 
-            while (srcpos < data.Length)       
+            while (srcpos < (data.Length - disasm.MAXINSTRLEN))
             {
                 instr = disasm.getInstr(codeaddr);          //disasm bytes at cur source pos into next instruction
-                instrlen = (uint)instr.len;                 //determines how many bytes to format in line
                 instrBytes = instr.getBytes();              //the instruction's bytes
+                instrlen = (uint)instrBytes.Count;          //determines how many bytes to format in line
 
                 asmLine.Clear();
 
@@ -92,15 +92,15 @@ namespace Origami.Win32
                 String spacer = (opcode.Length < OPCODEFIELDWIDTH) ? 
                     "            ".Substring(0, OPCODEFIELDWIDTH - opcode.Length) : "";
 
-                if (disasm.opcount > 0)
+                if (instr.opcount > 0)
                 {
                     asmLine.Append(spacer + instr.op1.ToString());
                 }
-                else if (disasm.opcount > 1)
+                if (instr.opcount > 1)
                 {
                     asmLine.Append("," + instr.op2.ToString());
                 }
-                else if (disasm.opcount > 2)
+                if (instr.opcount > 2)
                 {
                     asmLine.Append("," + instr.op3.ToString());
                 }
