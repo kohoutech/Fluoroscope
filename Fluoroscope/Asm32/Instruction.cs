@@ -26,7 +26,6 @@ namespace Origami.Asm32
 {
     public class Instruction
     {
-        public enum SEGPREFIX {ES, CS, SS, DS, FS, GS, None};
         public enum LOCKPREFIX { LOCK, None };
         public enum LOOPPREFIX { REP, REPNE, None };
 
@@ -96,7 +95,29 @@ namespace Origami.Asm32
         {
             opcount = 2;
             op1 = _op1;
+            op2 = _op2;        
+        }
+
+        public override string ToString()
+        {
+            return "MUL";
+        }
+    }
+
+    public class IntMultiply : Instruction
+    {
+        public IntMultiply(Operand _op1, Operand _op2, Operand _op3)
+            : base()
+        {
+            opcount = 3;
+            op1 = _op1;
             op2 = _op2;
+            op3 = _op3;
+        }
+
+        public override string ToString()
+        {
+            return "IMUL";
         }
     }
 
@@ -294,6 +315,37 @@ namespace Origami.Asm32
         }
     }
 
+    public class Pushad : Instruction
+    {
+        public Pushad()
+            : base()
+        {
+            opcount = 0;
+            
+        }
+
+        public override string ToString()
+        {
+            return "PUSHAD";
+        }
+    }
+
+    public class Popad : Instruction
+    {
+        public Popad()
+            : base()
+        {
+            opcount = 0;
+
+        }
+
+        public override string ToString()
+        {
+            return "POPAD";
+        }
+    }
+
+
 //- comparison ----------------------------------------------------------------
 
     public class Compare : Instruction
@@ -324,6 +376,25 @@ namespace Origami.Asm32
 
     public class JumpConditional : Instruction
     {
+        public enum TEST { JO, JNO, JB, JAE, JE, JNE, JBE, JA, JS, JNS, JP, JNP, JL, JGE, JLE, JG};
+
+        public TEST test;
+
+        public JumpConditional(TEST _test, Operand _op1)
+            : base()
+        {
+            test = _test;
+            op1 = _op1;
+            opcount = 1;
+        }
+
+        String[] tests = { "JO", "JNO", "JB", "JAE", "JE", "JNE", "JBE", "JA", 
+                           "JS", "JNS", "JP", "JNP", "JL", "JGE", "JLE", "JG" };
+
+        public override string ToString()
+        {
+            return tests[(int)test];
+        }
     }
 
     public class Loop : Instruction
@@ -408,10 +479,42 @@ namespace Origami.Asm32
 
     public class Input : Instruction
     {
+        LOOPPREFIX prefix;
+
+        public Input(Operand _op1, Operand _op2, LOOPPREFIX _prefix)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+            prefix = _prefix;
+        }
+
+        public override string ToString()
+        {
+            String prefixStr = (prefix == LOOPPREFIX.REP) ? "REP " : ((prefix == LOOPPREFIX.REPNE) ? "REPNE " : "");
+            return prefixStr + "INS";
+        }
     }
 
     public class Output : Instruction
     {
+        LOOPPREFIX prefix;
+
+        public Output(Operand _op1, Operand _op2, LOOPPREFIX _prefix)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+            prefix = _prefix;
+        }
+
+        public override string ToString()
+        {
+            String prefixStr = (prefix == LOOPPREFIX.REP) ? "REP " : ((prefix == LOOPPREFIX.REPNE) ? "REPNE " : "");
+            return prefixStr + "OUTS";
+        }
     }
 
 //- addressing ----------------------------------------------------------------
@@ -432,10 +535,34 @@ namespace Origami.Asm32
 
     public class Arpl : Instruction
     {
+        public Arpl(Operand _op1, Operand _op2)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+        }
+
+        public override string ToString()
+        {
+            return "ARPL";
+        }
     }
 
     public class Bound : Instruction
     {
+        public Bound(Operand _op1, Operand _op2)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+        }
+
+        public override string ToString()
+        {
+            return "BOUND";
+        }
     }
 
     public class Lock : Instruction

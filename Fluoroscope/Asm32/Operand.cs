@@ -35,37 +35,49 @@ namespace Origami.Asm32
     {
         public uint val;
         public OPSIZE size;
+        public bool isOffset;
 
         public Immediate(uint _val, OPSIZE _size)
         {
             val = _val;
             size = _size;
+            isOffset = false;
         }
 
         public override string ToString()
         {
-            String result = "";
-            if (size == OPSIZE.Byte)
+            String result = val.ToString("X");
+            if (val > 0x09) result = result + "h";
+            if (isOffset && size == OPSIZE.Byte)
             {
                 uint b = val;
                 bool negative = false;
-                if (b > 0x80)
+                if ((b > 0x80))
                 {
                     b = 0x100 - b;
                     negative = true;
                 }
                 result = b.ToString("X");
                 if (b > 0x09) result = result + "h";
-                if (Char.IsLetter(result[0]))
+                if (negative)
                 {
-                    result = "0" + result;
+                    result = "-" + result;
                 }
-                result = (negative ? "-" : "+") + result;
             }
-            else
+
+            if (size == OPSIZE.SignedByte)
             {
-               result =  val.ToString("X8") + "h";
+                if (val >= 0x80)
+                {
+                    result = "FFFFFF" + result;
+                }
             }
+
+            if ((!isOffset) && (Char.IsLetter(result[0])))
+            {
+                result = "0" + result;
+            }
+
             return result;
         }
     }
@@ -167,6 +179,7 @@ namespace Origami.Asm32
 //- register ------------------------------------------------------------------
 
         //    readonly String[] seg16 = { "es", "cs", "ss", "ds", "fs", "gs", "??", "??" };
+    //public enum SEGPREFIX { ES, CS, SS, DS, FS, GS, None };        
 
     public class Segment : Operand
     {
@@ -197,14 +210,20 @@ namespace Origami.Asm32
         public int mult;
         public Immediate f3;
         public OPSIZE size;
+        public Segment.SEG seg;
 
-        public Memory(Register _f1, Register _f2, int _mult, Immediate _f3, OPSIZE _size)
+        public Memory(Register _f1, Register _f2, int _mult, Immediate _f3, OPSIZE _size, Segment.SEG _seg)
         {
             f1 = _f1;
             f2 = _f2;
             mult = _mult;
             f3 = _f3;
+            if (f3 != null)
+            {
+                f3.isOffset = true;
+            }
             size = _size;
+            seg = _seg;
         }
 
         public String getSizePtrStr(Operand.OPSIZE size)
@@ -227,6 +246,8 @@ namespace Origami.Asm32
         public override string ToString()
         {
             String result = "";
+
+            //the address part
             if (f1 != null)
             {
                 result = f1.ToString();
@@ -245,13 +266,21 @@ namespace Origami.Asm32
             }
             if ((f3 != null) && (f3.val > 0))
             {
-                if (result.Length > 0)
+                String immStr = f3.ToString();
+                if ((result.Length > 0) && (immStr[0] != '-'))
                 {
                     result += "+";
                 }
-                result += f3.ToString();
+                result += immStr;
             }
-            result = getSizePtrStr(size) + "[" + result + "]";
+
+            //the decorations
+            result = "[" + result + "]";
+            if ((seg != Segment.SEG.DS) || (f1 == null && f2 == null))
+            {
+                result = seg.ToString() + ":" + result;
+            }
+            result = getSizePtrStr(size) + result;
             return result;
         }
     }
