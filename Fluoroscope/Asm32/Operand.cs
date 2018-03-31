@@ -82,6 +82,22 @@ namespace Origami.Asm32
         }
     }
 
+    public class Absolute : Operand
+    {
+        public uint seg;
+        public uint addr;
+
+        public Absolute(uint _seg, uint _addr)
+        {
+            seg = _seg;
+            addr = _addr;            
+        }
+
+        public override string ToString()
+        {
+            return (seg.ToString("X4") + ':' + addr.ToString("X8"));
+        }
+    }
 
 //- register ------------------------------------------------------------------
 
@@ -178,8 +194,7 @@ namespace Origami.Asm32
 
 //- register ------------------------------------------------------------------
 
-        //    readonly String[] seg16 = { "es", "cs", "ss", "ds", "fs", "gs", "??", "??" };
-    //public enum SEGPREFIX { ES, CS, SS, DS, FS, GS, None };        
+        //    readonly String[] seg16 = { "es", "cs", "ss", "ds", "fs", "gs", "??", "??" };    
 
     public class Segment : Operand
     {

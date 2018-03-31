@@ -243,6 +243,22 @@ namespace Origami.Asm32
 
     public class ConvertSize : Instruction
     {
+        public enum MODE { CWDE, CDQ }
+
+        MODE mode;
+
+        public ConvertSize(MODE _mode)
+            : base() 
+        {
+            opcount = 0;
+            mode = _mode;
+        }
+
+        public override string ToString()
+        {
+            return (mode == MODE.CWDE) ? "CWDE" : "CDQ";
+        }
+
     }
 
     public class AsciiAdjust : Instruction
@@ -345,6 +361,35 @@ namespace Origami.Asm32
         }
     }
 
+    public class Pushfd : Instruction
+    {
+        public Pushfd()
+            : base()
+        {
+            opcount = 0;
+
+        }
+
+        public override string ToString()
+        {
+            return "PUSHFD";
+        }
+    }
+
+    public class Popfd : Instruction
+    {
+        public Popfd()
+            : base()
+        {
+            opcount = 0;
+
+        }
+
+        public override string ToString()
+        {
+            return "POPFD";
+        }
+    }
 
 //- comparison ----------------------------------------------------------------
 
@@ -366,6 +411,18 @@ namespace Origami.Asm32
 
     public class Test : Instruction
     {
+        public Test(Operand _op1, Operand _op2)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+        }
+
+        public override string ToString()
+        {
+            return "TEST";
+        }
     }
 
 //- branching -----------------------------------------------------------------
@@ -376,11 +433,11 @@ namespace Origami.Asm32
 
     public class JumpConditional : Instruction
     {
-        public enum TEST { JO, JNO, JB, JAE, JE, JNE, JBE, JA, JS, JNS, JP, JNP, JL, JGE, JLE, JG};
+        public enum CONDIT { JO, JNO, JB, JAE, JE, JNE, JBE, JA, JS, JNS, JP, JNP, JL, JGE, JLE, JG};
 
-        public TEST test;
+        public CONDIT test;
 
-        public JumpConditional(TEST _test, Operand _op1)
+        public JumpConditional(CONDIT _test, Operand _op1)
             : base()
         {
             test = _test;
@@ -403,6 +460,17 @@ namespace Origami.Asm32
 
     public class Call : Instruction
     {
+        public Call(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;            
+        }
+
+        public override string ToString()
+        {
+            return "CALL";
+        }
     }
 
     public class Return : Instruction
@@ -449,8 +517,36 @@ namespace Origami.Asm32
 
 //- data operations -----------------------------------------------------------
 
+    public class Move : Instruction
+    {
+        public Move(Operand _op1, Operand _op2)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+        }
+
+        public override string ToString()
+        {
+            return "MOV";
+        }
+    }
+
     public class Exchange : Instruction
     {
+        public Exchange(Operand _op1, Operand _op2)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+        }
+
+        public override string ToString()
+        {
+            return "XCHG";
+        }
     }
 
     public class LoadString : Instruction
@@ -525,6 +621,18 @@ namespace Origami.Asm32
 
     public class LoadEffAddress : Instruction
     {
+        public LoadEffAddress(Operand _op1, Operand _op2)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+        }
+
+        public override string ToString()
+        {
+            return "LEA";
+        }
     }
 
 //- miscellaneous -------------------------------------------------------------
@@ -563,10 +671,6 @@ namespace Origami.Asm32
         {
             return "BOUND";
         }
-    }
-
-    public class Lock : Instruction
-    {
     }
 
     public class Halt : Instruction
