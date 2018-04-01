@@ -130,15 +130,25 @@ namespace Origami.Asm32
             op1 = _op1;
             op2 = _op2;
         }
+
+        public override string ToString()
+        {
+            return "DIV";
+        }
     }
 
     public class Negate : Instruction
     {
-        public Negate(Operand _op1, Operand _op2)
+        public Negate(Operand _op1)
             : base()
         {
-            op1 = _op1;
-            op2 = _op2;
+            opcount = 1;
+            op1 = _op1;            
+        }
+
+        public override string ToString()
+        {
+            return "NEG";
         }
     }
 
@@ -176,11 +186,16 @@ namespace Origami.Asm32
 
     public class Not : Instruction
     {
-        public Not(Operand _op1, Operand _op2)
+        public Not(Operand _op1)
             : base()
         {
-            op1 = _op1;
-            op2 = _op2;
+            opcount = 1;
+            op1 = _op1;            
+        }
+
+        public override string ToString()
+        {
+            return "NOT";
         }
     }
 
@@ -193,6 +208,7 @@ namespace Origami.Asm32
             op1 = _op1;
             op2 = _op2;
         }
+
         public override string ToString()
         {
             return "AND";
@@ -250,7 +266,6 @@ namespace Origami.Asm32
         public ConvertSize(MODE _mode)
             : base() 
         {
-            opcount = 0;
             mode = _mode;
         }
 
@@ -270,7 +285,6 @@ namespace Origami.Asm32
         public AsciiAdjust(MODE _mode)
             : base() 
         {
-            opcount = 0;
             mode = _mode;
         }
 
@@ -289,7 +303,6 @@ namespace Origami.Asm32
         public DecimalAdjust(MODE _mode)
             : base() 
         {
-            opcount = 0;
             mode = _mode;
         }
 
@@ -331,13 +344,11 @@ namespace Origami.Asm32
         }
     }
 
-    public class Pushad : Instruction
+    public class PushRegisters : Instruction
     {
-        public Pushad()
+        public PushRegisters()
             : base()
         {
-            opcount = 0;
-            
         }
 
         public override string ToString()
@@ -346,13 +357,11 @@ namespace Origami.Asm32
         }
     }
 
-    public class Popad : Instruction
+    public class PopRegisters : Instruction
     {
-        public Popad()
+        public PopRegisters()
             : base()
         {
-            opcount = 0;
-
         }
 
         public override string ToString()
@@ -361,13 +370,11 @@ namespace Origami.Asm32
         }
     }
 
-    public class Pushfd : Instruction
+    public class PushFlags : Instruction
     {
-        public Pushfd()
+        public PushFlags()
             : base()
         {
-            opcount = 0;
-
         }
 
         public override string ToString()
@@ -376,13 +383,11 @@ namespace Origami.Asm32
         }
     }
 
-    public class Popfd : Instruction
+    public class PopFlags : Instruction
     {
-        public Popfd()
+        public PopFlags()
             : base()
         {
-            opcount = 0;
-
         }
 
         public override string ToString()
@@ -435,22 +440,22 @@ namespace Origami.Asm32
     {
         public enum CONDIT { JO, JNO, JB, JAE, JE, JNE, JBE, JA, JS, JNS, JP, JNP, JL, JGE, JLE, JG};
 
-        public CONDIT test;
+        public CONDIT condit;
 
-        public JumpConditional(CONDIT _test, Operand _op1)
+        public JumpConditional(CONDIT _condit, Operand _op1)
             : base()
         {
-            test = _test;
+            condit = _condit;
             op1 = _op1;
             opcount = 1;
         }
 
-        String[] tests = { "JO", "JNO", "JB", "JAE", "JE", "JNE", "JBE", "JA", 
+        String[] condits = { "JO", "JNO", "JB", "JAE", "JE", "JNE", "JBE", "JA", 
                            "JS", "JNS", "JP", "JNP", "JL", "JGE", "JLE", "JG" };
 
         public override string ToString()
         {
-            return tests[(int)test];
+            return condits[(int)condit];
         }
     }
 
@@ -497,10 +502,28 @@ namespace Origami.Asm32
 
     public class LoadFlags : Instruction
     {
+        public LoadFlags()
+            : base()
+        {
+        }
+
+        public override string ToString()
+        {
+            return "LAHF";
+        }
     }
 
     public class StoreFlags : Instruction
     {
+        public StoreFlags()
+            : base()
+        {
+        }
+
+        public override string ToString()
+        {
+            return "SAHF";
+        }
     }
 
     public class SetFlag : Instruction
@@ -551,25 +574,99 @@ namespace Origami.Asm32
 
     public class LoadString : Instruction
     {
+        LOOPPREFIX prefix;
+
+        public LoadString(Operand _op1, LOOPPREFIX _prefix)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            prefix = _prefix;
+        }
+
+        public override string ToString()
+        {
+            return "LODS";
+        }
     }
 
     public class MoveString : Instruction
     {
+        LOOPPREFIX prefix;
+
+        public MoveString(Operand _op1, Operand _op2, LOOPPREFIX _prefix)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+            prefix = _prefix;
+        }
+
+        public override string ToString()
+        {
+            return "MOVS";
+        }
     }
 
     public class StoreString : Instruction
     {
+        LOOPPREFIX prefix;
+
+        public StoreString(Operand _op1, LOOPPREFIX _prefix)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            prefix = _prefix;
+        }
+
+        public override string ToString()
+        {
+            return "STOS";
+        }
+    }
+
+    public class CompareString : Instruction
+    {
+        LOOPPREFIX prefix;
+
+        public CompareString(Operand _op1, Operand _op2, LOOPPREFIX _prefix)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+            prefix = _prefix;
+        }
+
+        public override string ToString()
+        {
+            return "CMPS";
+        }
+
     }
 
     public class ScanString : Instruction
     {
+        LOOPPREFIX prefix;
+
+        public ScanString(Operand _op1, LOOPPREFIX _prefix)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            prefix = _prefix;
+        }
+
+        public override string ToString()
+        {
+            //        if (((b == 0xae) || (b == 0xaf)) && ("rep ".Equals(loopprefix))) loopprefix = "repe ";
+            return "SCAS";
+        }
     }
 
     public class XlateString : Instruction
-    {
-    }
-
-    public class CompareString : Instruction
     {
     }
 
@@ -639,6 +736,15 @@ namespace Origami.Asm32
 
     public class Wait : Instruction
     {
+        public Wait()
+            : base()
+        {            
+        }
+
+        public override string ToString()
+        {
+            return "WAIT";
+        }
     }
 
     public class Arpl : Instruction
@@ -675,18 +781,35 @@ namespace Origami.Asm32
 
     public class Halt : Instruction
     {
+        public Halt()
+            : base()
+        {            
+        }
+
+        public override string ToString()
+        {
+            return "HALT";
+        }
     }
 
     public class NoOp : Instruction
     {
+        public NoOp()
+            : base()
+        {            
+        }
+
+        public override string ToString()
+        {
+            return "NOP";
+        }
     }
 
     public class UnknownOp : Instruction
     {
         public UnknownOp()
             : base()
-        {
-            opcount = 0;            
+        {            
         }
 
         public override string ToString()
@@ -694,5 +817,4 @@ namespace Origami.Asm32
             return "???";
         }
     }
-
 }

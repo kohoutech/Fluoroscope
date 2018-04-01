@@ -124,15 +124,15 @@ namespace Origami.Asm32
             }
             else if ((b >= 0x90) && (b <= 0x9f))
             {
-                //op9x(b);
+                instr = op9x(b);
             }
             else if ((b >= 0xa0) && (b <= 0xaf))
             {
-                //opax(b);
+                instr = opax(b);
             }
             else if ((b >= 0xb0) && (b <= 0xbf))
             {
-                //opbx(b);
+                instr = opbx(b);
             }
             else if ((b >= 0xc0) && (b <= 0xcf))
             {
@@ -441,10 +441,10 @@ namespace Origami.Asm32
             switch (b)
             {
                 case 0x60:
-                    instr = new Pushad();
+                    instr = new PushRegisters();
                     break;
                 case 0x61:
-                    instr = new Popad();
+                    instr = new PopRegisters();
                     break;
 
                 case 0x62:
@@ -516,9 +516,6 @@ namespace Origami.Asm32
             }
             return instr;
         }
-
-        readonly String[] opcode7x = { "jo", "jno", "jb", "jae", "je", "jne", "jbe", "ja",
-                                       "js", "jns", "jp", "jnp", "jl", "jge", "jle", "jg"};
 
         public Instruction op7x(uint b)
         {
@@ -634,9 +631,10 @@ namespace Origami.Asm32
                 case 0x95:
                 case 0x96:
                 case 0x97:
+                    op1 = getReg(Operand.OPSIZE.DWord, 0);
+                    op2 = getReg(Operand.OPSIZE.DWord, b % 0x8);
+                    instr = new Exchange(op1, op2);
                     break;
-
-
 
                 case 0x98:
                     instr = new ConvertSize(ConvertSize.MODE.CWDE);
@@ -647,130 +645,116 @@ namespace Origami.Asm32
                     break;
 
                 case 0x9a:
-                    Absolute op1 = absolute();
+                    op1 = absolute();
                     instr = new Call(op1);
                     break;
-
-                //readonly String[] opcode9x = { "nop", "xchg", "xchg", "xchg", "xchg", "xchg", "xchg", "xchg",
-                //         "cwde", "cdq", "call", "wait", "pushf", "popfd", "sahf", "lahf"};
-
 
                 case 0x9b:
                     instr = new Wait();
                     break;
 
                 case 0x9c:
-                    instr = new Pushfd();
+                    instr = new PushFlags();
                     break;
 
                 case 0x9d:
-                    instr = new Popfd();
+                    instr = new PopFlags();
                     break;
 
                 case 0x9e:
-                    instr = new NoOp();
+                    instr = new StoreFlags();
                     break;
 
                 case 0x9f:
-                    instr = new NoOp();
+                    instr = new LoadFlags();
                     break;
-
-                //opcode = opcode9x[(b % 0x10)];
-                //opcount = 0;
-                //if ((b >= 0x91) && (b <= 0x97))
-                //{
-                //    op1 = "eax";
-                //    op2 = getReg(OPSIZE.DWord, b % 0x8);
-                //    opcount = 2;
-                //}
             }
             return instr;
         }
 
-
-        readonly String[] opcodeax = { "mov", "mov", "mov", "mov", "movs", "movs", "cmps", "cmps",
-                                       "test", "test", "stos", "stos", "lods", "lods", "scas", "scas"};
-        readonly String[] axaddr = {"byte ptr es:[edi]", "byte ptr [esi]",
-                                    "dword ptr es:[edi]", "dword ptr [esi]"};
-        readonly int[] sizeax = { 0, 2, 1, 3, 0, 2 };
-
-        public void opax(uint b)
+        public Instruction opax(uint b)
         {
-            //opcode = opcodeax[(b % 0x10)];
-            //opcount = 0;    
-            //switch (b) {
-            //    case 0xa0:
-            //        op1 = "al";
-            //        op2 = getSizePtrStr(OPSIZE.Byte) + segprefix + "[" + addr32() + "]";
-            //        opcount = 2;
-            //        break;
-            //    case 0xa1:
-            //        op1 = "eax";
-            //        op2 = getSizePtrStr(OPSIZE.DWord) + segprefix + "[" + addr32() + "]";
-            //        opcount = 2;
-            //        break;
-            //    case 0xa2:
-            //        op1 = getSizePtrStr(OPSIZE.Byte) + segprefix + "[" + addr32() + "]";
-            //        op2 = "al";
-            //        opcount = 2;
-            //        break;
-            //    case 0xa3:
-            //        op1 = getSizePtrStr(OPSIZE.DWord) + segprefix + "[" + addr32() + "]";
-            //        op2 = "eax";
-            //        opcount = 2;
-            //        break;
+            Instruction instr = null;
+            Immediate imm = null;
+            switch (b) {
+                case 0xa0:
+                case 0xa1:
+                    op1 = getReg((b == 0xa0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, 0);
+                    imm = new Immediate(addr32(), Operand.OPSIZE.DWord);
+                    op2 = new Memory(null, null, 1, imm, (b == 0xa0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
+                    instr = new Move(op1, op2);
+                    break;
+
+                case 0xa2:
+                case 0xa3:
+                    imm = new Immediate(addr32(), Operand.OPSIZE.DWord);
+                    op1 = new Memory(null, null, 1, imm, (b == 0xa2) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
+                    op2 = getReg((b == 0xa2) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, 0);
+                    instr = new Move(op1, op2);
+                    break;
                 
-            //    case 0xa4:
-            //    case 0xa5:
-            //    case 0xa6:
-            //    case 0xa7:
-            //        if (((b == 0xa6) || (b == 0xa7)) && ("rep ".Equals(loopprefix))) loopprefix = "repe ";
-            //        opcode = loopprefix + opcode;
-            //        op1 = axaddr[sizeax[b - 0xa4]];
-            //        op2 = axaddr[sizeax[b - 0xa4 + 2]];
-            //        opcount = 2;
-            //        break;
+                case 0xa4:                
+                case 0xa5:
+                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
+                        (b == 0xa4) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
+                    op2 = new Memory(new Register(Register.REG32.ESI), null, 1, null,
+                        (b == 0xa4) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
+                    instr = new MoveString(op1, op2, loopprefix);
+                    break;
+
+                case 0xa6:
+                case 0xa7:
+                    op1 = new Memory(new Register(Register.REG32.ESI), null, 1, null,
+                        (b == 0xa6) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
+                    op2 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
+                        (b == 0xa6) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
+                    instr = new CompareString(op1, op2, loopprefix);
+                    break;
                 
-            //    case 0xa8:
-            //        op1 = "al";
-            //        op2 = getImm(OPSIZE.Byte);
-            //        opcount = 2;
-            //        break;
-            //    case 0xa9:
-            //        op1 = "eax";
-            //        op2 = getImm(OPSIZE.DWord);
-            //        opcount = 2;
-            //        break;
-                
-            //    case 0xaa:
-            //    case 0xab:
-            //    case 0xac:
-            //    case 0xad:
-            //    case 0xae:
-            //    case 0xaf:
-            //        if (((b == 0xae) || (b == 0xaf)) && ("rep ".Equals(loopprefix))) loopprefix = "repe ";
-            //        opcode = loopprefix + opcode;
-            //        op1 = axaddr[sizeax[b - 0xaa]];
-            //        opcount = 1;
-            //        break;
-                
-            //}
+                case 0xa8:
+                case 0xa9:
+                    op1 = getReg((b == 0xa8) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, 0);
+                    op2 = getImm((b == 0xa8) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord);
+                    instr = new Test(op1, op2);
+                    break;
+
+                case 0xaa:
+                case 0xab:
+                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
+                                (b == 0xaa) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
+                    instr = new StoreString(op1, loopprefix);
+                    break;
+
+                case 0xac:
+                case 0xad:
+                    op2 = new Memory(new Register(Register.REG32.ESI), null, 1, null,
+                        (b == 0xac) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
+                    instr = new LoadString(op1, loopprefix);
+                    break;
+
+                case 0xae:
+                case 0xaf:
+                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
+                            (b == 0xae) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
+                    instr = new ScanString(op1, loopprefix);
+                    break;                
+            }
+            return instr;
         }
 
-        public void opbx(uint b)
+        public Instruction opbx(uint b)
         {
-            //opcode = "mov";
-            //if (b <= 0xb7)
-            //{
-            //    op1 = getReg(OPSIZE.Byte, b % 0x8);
-            //    op2 = getImm(OPSIZE.Byte);
-            //}
-            //else
-            //{
-            //    op1 = getReg(OPSIZE.DWord, b % 0x8);
-            //    op2 = getImm(OPSIZE.DWord);
-            //}
-            //opcount = 2;
+            if (b <= 0xb7)
+            {
+                op1 = getReg(Operand.OPSIZE.Byte, b % 0x8);
+                op2 = getImm(Operand.OPSIZE.Byte);
+            }
+            else
+            {
+                op1 = getReg(Operand.OPSIZE.DWord, b % 0x8);
+                op2 = getImm(Operand.OPSIZE.DWord);
+            }
+            return new Move(op1, op2);
         }
 
         readonly String[] opcodecd = { "rol", "ror", "rcl", "rcr", "shl", "shr", "sal", "sar" };
