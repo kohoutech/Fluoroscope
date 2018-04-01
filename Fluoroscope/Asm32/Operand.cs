@@ -82,6 +82,21 @@ namespace Origami.Asm32
         }
     }
 
+    public class Address : Operand
+    {
+        public uint val;
+
+        public Address(uint _val)
+        {
+            val = _val;
+        }
+
+        public override string ToString()
+        {
+            return val.ToString("X8");
+        }
+    }
+
     public class Absolute : Operand
     {
         public uint seg;

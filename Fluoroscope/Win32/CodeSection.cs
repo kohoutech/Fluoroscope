@@ -86,6 +86,10 @@ namespace Origami.Win32
 
                 //opcode field
                 String opcode = instr.ToString();
+                if (instr.lockprefix)
+                {
+                    opcode = "LOCK " + opcode;
+                }
                 asmLine.Append(opcode);
 
                 //operands field

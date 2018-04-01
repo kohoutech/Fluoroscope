@@ -46,7 +46,7 @@ namespace Origami.Asm32
         
         public Segment.SEG segprefix;
         public Instruction.LOOPPREFIX loopprefix;
-        public Instruction.LOCKPREFIX lockprefix;
+        public bool lockprefix;
         public bool operandSizeOverride;
         public bool addressSizeOverride;
         
@@ -65,7 +65,7 @@ namespace Origami.Asm32
 
             segprefix = Segment.SEG.DS;
             loopprefix = Instruction.LOOPPREFIX.None;
-            lockprefix = Instruction.LOCKPREFIX.None;
+            lockprefix = false;
             operandSizeOverride = false;
             addressSizeOverride = false;
             useModrm32 = false;            
@@ -80,7 +80,7 @@ namespace Origami.Asm32
             opcount = 0;
             segprefix = Segment.SEG.DS;
             loopprefix = Instruction.LOOPPREFIX.None;
-            lockprefix = Instruction.LOCKPREFIX.None;
+            lockprefix = false;
             operandSizeOverride = false;
             addressSizeOverride = false;
             useModrm32 = false;
@@ -136,11 +136,11 @@ namespace Origami.Asm32
             }
             else if ((b >= 0xc0) && (b <= 0xcf))
             {
-                //opcx(b);
+                instr = opcx(b);
             }
             else if ((b >= 0xd0) && (b <= 0xd7))
             {
-                //opd7(b);
+                instr = opd7(b);
             }
             else if ((b >= 0xd8) && (b <= 0xdf))
             {
@@ -148,19 +148,19 @@ namespace Origami.Asm32
             }
             else if ((b >= 0xe0) && (b <= 0xef))
             {
-                //opex(b);
+                instr = opex(b);
             }
             else if ((b >= 0xf0) && (b <= 0xff))
             {
-                //opfx(b);
+                instr = opfx(b);
             }
-            if ("lock ".Equals(lockprefix)) opcode = lockprefix + opcode;
 
             if (instr == null)
             {
                 instr = new UnknownOp();
             }
 
+            instr.lockprefix = lockprefix;
             instr.bytes = instrBytes;
 
             return instr;
@@ -188,7 +188,7 @@ namespace Origami.Asm32
             if (b == 0x64) segprefix = Segment.SEG.FS;
             if (b == 0x65) segprefix = Segment.SEG.GS;
                 
-            if (b == 0xf0) lockprefix = Instruction.LOCKPREFIX.LOCK;             //group2
+            if (b == 0xf0) lockprefix = true;             //group2
 
             if (b == 0xf2) loopprefix = Instruction.LOOPPREFIX.REPNE;            //group3
             if (b == 0xf3) loopprefix = Instruction.LOOPPREFIX.REP;
@@ -426,15 +426,9 @@ namespace Origami.Asm32
         }
 
         //0X64, 0x65, 0x66, 0x67 are prefix bytes and should never get here
-        readonly String[] opcode6x = { "pushad", "popad", "bound", "arpl", "---", "---", "---", "---",
-                                       "push", "imul", "push", "imul", "ins", "ins", "outs", "outs"};
-        readonly int[] size6x = { 0, 2, 1, 3 };
-
         public Instruction op6x(uint b)
         {
             Instruction instr = null;
-            opcode = opcode6x[(b % 0x10)];
-            opcount = 0;
             uint bhi = (b / 0x08) % 0x08;   //--bb b--- (top two bits should = 0)
             uint blo = b % 0x08;            //---- -bbb
             uint modrm = 0;
@@ -502,7 +496,7 @@ namespace Origami.Asm32
                     op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
                         (b == 0x6c) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
                     op2 = new Register(Register.REG16.DX);
-                    instr = new Input(op1, op2, loopprefix);
+                    instr = new InputString(op1, op2, loopprefix);
                     break;
 
                 case 0x6e:
@@ -510,7 +504,7 @@ namespace Origami.Asm32
                     op1 = new Register(Register.REG16.DX);
                     op2 = new Memory(new Register(Register.REG32.ESI), null, 1, null,
                         (b == 0x6c) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
-                    instr = new Output(op1, op2, loopprefix);
+                    instr = new OutputString(op1, op2, loopprefix);
                     break;
 
             }
@@ -523,9 +517,6 @@ namespace Origami.Asm32
             op1 = rel8();
             return new JumpConditional(condit, op1);            
         }
-
-        //readonly String[] opcode84 = { "add", "or", "adc", "sbb", "and", "sub", "xor", "cmp"};
-        readonly String[] opcode88 = { "test", "test", "xchg", "xchg", "mov", "mov", "mov", "mov" };
 
         public Instruction op8x(uint b)
         {
@@ -582,16 +573,13 @@ namespace Origami.Asm32
                     break;
 
                 case 0x8c:
-                    useModrm32 = true;              //kludge to fix dumpbin bug
-                    op1 = getModrm(modrm, Operand.OPSIZE.Word);
-                    op2 = new Segment((Segment.SEG)bhi);
-                    instr = new Move(op1, op2);
-                    break;
-
-                case 0x8e:
-                    op1 = new Segment((Segment.SEG)bhi);
-                    op2 = getModrm(modrm, Operand.OPSIZE.Word);
-                    instr = new Move(op1, op2);
+                    //useModrm32 = true;                        //kludge to fix dumpbin bug
+                    if ((modrm < 0xc0) && (bhi < 0x06))         //8c 30 - 8c 3f, 8c 70 - 8c 7f, 8c b0 - 8c ff undefined
+                    {                                                   
+                        op1 = getModrm(modrm, Operand.OPSIZE.Word);
+                        op2 = new Segment((Segment.SEG)bhi);
+                        instr = new Move(op1, op2);
+                    }
                     break;
 
                 case 0x8d:
@@ -600,6 +588,15 @@ namespace Origami.Asm32
                         op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
                         op2 = getModrm(modrm, Operand.OPSIZE.None);          //no "byte/dword ptr " prefix
                         instr = new LoadEffAddress(op1, op2);
+                    }
+                    break;
+
+                case 0x8e:
+                    if (bhi < 0x06)                 //8e 30 - 8e 3f, 8e 70 - 8e 7f, 8e b0 - 8e bf, 8e f0 - 8e ff undefined
+                    {
+                        op1 = new Segment((Segment.SEG)bhi);
+                        op2 = getModrm(modrm, Operand.OPSIZE.Word);
+                        instr = new Move(op1, op2);
                     }
                     break;
 
@@ -676,66 +673,59 @@ namespace Origami.Asm32
         {
             Instruction instr = null;
             Immediate imm = null;
-            switch (b) {
+            Operand.OPSIZE size = (b % 2 == 0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord;
+            switch (b)
+            {
                 case 0xa0:
                 case 0xa1:
-                    op1 = getReg((b == 0xa0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, 0);
-                    imm = new Immediate(addr32(), Operand.OPSIZE.DWord);
-                    op2 = new Memory(null, null, 1, imm, (b == 0xa0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
+                    op1 = getReg(size, 0);
+                    imm = new Immediate(addr32(), Operand.OPSIZE.DWord);op2 = new Memory(null, null, 1, imm, size, Segment.SEG.DS);
                     instr = new Move(op1, op2);
                     break;
 
                 case 0xa2:
                 case 0xa3:
-                    imm = new Immediate(addr32(), Operand.OPSIZE.DWord);
-                    op1 = new Memory(null, null, 1, imm, (b == 0xa2) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
-                    op2 = getReg((b == 0xa2) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, 0);
+                    imm = new Immediate(addr32(), Operand.OPSIZE.DWord);op1 = new Memory(null, null, 1, imm, size, Segment.SEG.DS);
+                    op2 = getReg(size, 0);
                     instr = new Move(op1, op2);
                     break;
                 
                 case 0xa4:                
                 case 0xa5:
-                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
-                        (b == 0xa4) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
-                    op2 = new Memory(new Register(Register.REG32.ESI), null, 1, null,
-                        (b == 0xa4) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
+                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null, size, Segment.SEG.ES);
+                    op2 = new Memory(new Register(Register.REG32.ESI), null, 1, null, size, Segment.SEG.DS);
                     instr = new MoveString(op1, op2, loopprefix);
                     break;
 
                 case 0xa6:
                 case 0xa7:
-                    op1 = new Memory(new Register(Register.REG32.ESI), null, 1, null,
-                        (b == 0xa6) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
-                    op2 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
-                        (b == 0xa6) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
+                    op1 = new Memory(new Register(Register.REG32.ESI), null, 1, null, size, Segment.SEG.DS);
+                    op2 = new Memory(new Register(Register.REG32.EDI), null, 1, null, size, Segment.SEG.ES);
                     instr = new CompareString(op1, op2, loopprefix);
                     break;
                 
                 case 0xa8:
                 case 0xa9:
-                    op1 = getReg((b == 0xa8) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, 0);
-                    op2 = getImm((b == 0xa8) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord);
+                    op1 = getReg(size, 0);
+                    op2 = getImm(size);
                     instr = new Test(op1, op2);
                     break;
 
                 case 0xaa:
                 case 0xab:
-                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
-                                (b == 0xaa) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
+                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null, size, Segment.SEG.ES);
                     instr = new StoreString(op1, loopprefix);
                     break;
 
                 case 0xac:
                 case 0xad:
-                    op2 = new Memory(new Register(Register.REG32.ESI), null, 1, null,
-                        (b == 0xac) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
+                    op1 = new Memory(new Register(Register.REG32.ESI), null, 1, null, size, Segment.SEG.DS);
                     instr = new LoadString(op1, loopprefix);
                     break;
 
                 case 0xae:
                 case 0xaf:
-                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
-                            (b == 0xae) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
+                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null, size, Segment.SEG.ES);
                     instr = new ScanString(op1, loopprefix);
                     break;                
             }
@@ -757,321 +747,383 @@ namespace Origami.Asm32
             return new Move(op1, op2);
         }
 
-        readonly String[] opcodecd = { "rol", "ror", "rcl", "rcr", "shl", "shr", "sal", "sar" };
-
-        public void opcx(uint b)
+        public Instruction BitOps(uint op, Operand op1, Operand op2)
         {
-        //    uint modrm = 0;
-        //    switch (b)
-        //    {
-        //        case 0xc0:
-        //            modrm = getNextByte();
-        //            opcode = opcodecd[(modrm % 0x40) / 0x08];
-        //            op1 = getModrm(modrm, OPSIZE.Byte);
-        //            op2 = getImm(OPSIZE.Byte);
-        //            opcount = 2;
-        //            break;
-
-        //        case 0xc1:
-        //            modrm = getNextByte();
-        //            opcode = opcodecd[(modrm % 0x40) / 0x08];
-        //            op1 = getModrm(modrm, OPSIZE.DWord);
-        //            op2 = getImm(OPSIZE.Byte);
-        //            opcount = 2;
-        //            break;
-
-        //        case 0xc2:
-        //            opcode = "ret";
-        //            op1 = getImm(OPSIZE.Word);
-        //            opcount = 1;
-        //            break;
-
-        //        case 0xc3:
-        //            opcode = "ret";
-        //            opcount = 0;
-        //            break;
-
-        //        case 0xc4:
-        //        case 0xc5:
-        //            modrm = getNextByte();
-        //            opcode = (b == 0xc4) ? "les" : "lds";
-        //            op1 = getReg(OPSIZE.DWord, (modrm % 0x40) / 0x08);
-        //            op2 = getModrm(modrm, OPSIZE.FWord);
-        //            opcount = 2;
-        //            break;
-
-        //        case 0xc6:
-        //        case 0xc7:
-        //            modrm = getNextByte();
-        //            uint mode = (modrm % 0x40) / 0x08;
-        //            if (mode == 0)
-        //            {
-        //                opcode = "mov";
-        //                OPSIZE size = (b == 0xc6) ? OPSIZE.Byte : OPSIZE.DWord;
-        //                op1 = getModrm(modrm, size);
-        //                op2 = (b == 0xc6) ? getImm(OPSIZE.Byte) : getImm(OPSIZE.DWord); 
-        //                opcount = 2;                    
-        //            }
-        //            else
-        //            {
-        //                opcode = "???";     //08 - 3f, 48 - 7f \ undefined 
-        //                opcount = 0;        //88 - bf, c8 - ff /
-        //            }
-        //            break;
-
-        //        case 0xc8:
-        //            opcode = "enter";
-        //            op1 = getImm(OPSIZE.Word);
-        //            op2 = getImm(OPSIZE.Byte);
-        //            opcount = 2;
-        //            break;
-
-        //        case 0xc9:
-        //            opcode = "leave";
-        //            opcount = 0;
-        //            break;
-
-        //        case 0xca:
-        //        case 0xcb:
-        //            opcode = "retf";
-        //            op1 = (b == 0xca) ? getImm(OPSIZE.Word) : "";
-        //            opcount = (b == 0xca) ? 1 : 0;
-        //            break;
-
-        //        case 0xcc:
-        //        case 0xcd:
-        //            opcode = "int";
-        //            op1 = (b == 0xcc) ? "3" : getImm(OPSIZE.Byte);
-        //            opcount = 1;
-        //            break;
-
-        //        case 0xce:
-        //            opcode = "into";
-        //            opcount = 0;
-        //            break;
-
-        //        case 0xcf:
-        //            opcode = "iretd";
-        //            opcount = 0;
-        //            break;
-
-        //    }
+            Instruction instr = null;
+            switch (op)
+            {
+                case 0x00:
+                    instr = new Rotate(op1, op2, Rotate.MODE.LEFT, false);
+                    break;
+                case 0x01:
+                    instr = new Rotate(op1, op2, Rotate.MODE.RIGHT, false);
+                    break;
+                case 0x02:
+                    instr = new Rotate(op1, op2, Rotate.MODE.LEFT, true);
+                    break;
+                case 0x03:
+                    instr = new Rotate(op1, op2, Rotate.MODE.RIGHT, true);
+                    break;
+                case 0x04:
+                    instr = new Shift(op1, op2, Shift.MODE.LEFT, false);
+                    break;
+                case 0x05:
+                    instr = new Shift(op1, op2, Shift.MODE.RIGHT, false);
+                    break;
+                case 0x06:
+                    instr = new Shift(op1, op2, Shift.MODE.LEFT, true);
+                    break;
+                case 0x07:
+                    instr = new Shift(op1, op2, Shift.MODE.RIGHT, true);
+                    break;
+            }
+            return instr;
         }
-        
-        public void opd7(uint b)
+
+        public Instruction opcx(uint b)
         {
+            Instruction instr = null;
             uint modrm = 0;
+            Operand.OPSIZE size = (b % 2 == 0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord;
+            switch (b)
+            {
+                case 0xc0:
+                case 0xc1:
+                    modrm = getNextByte();
+                    op1 = getModrm(modrm, size);
+                    op2 = getImm(Operand.OPSIZE.Byte);
+                    instr = BitOps(((modrm % 0x40) / 0x08), op1, op2);
+                    break;
+
+                case 0xc2:
+                    op1 = getImm(Operand.OPSIZE.Word);
+                    instr = new Return(op1, false);
+                    break;
+
+                case 0xc3:
+                    instr = new Return(false);        
+                    break;
+
+                case 0xc4:
+                case 0xc5:
+                    modrm = getNextByte();
+                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                    op2 = getModrm(modrm, Operand.OPSIZE.FWord);
+                    instr = new LoadPtr(op1, op2, (b == 0xc4) ? LoadPtr.MODE.LES : LoadPtr.MODE.LDS);
+                    break;
+
+                case 0xc6:
+                case 0xc7:
+                    modrm = getNextByte();
+                    uint mode = (modrm % 0x40) / 0x08;          //08 - 3f, 48 - 7f \ undefined 
+                    if (mode == 0)                              //88 - bf, c8 - ff /
+                    {
+                        op1 = getModrm(modrm, size);
+                        op2 = getImm(size);
+                        instr = new Move(op1, op2);        
+                    }
+                    break;
+
+                case 0xc8:
+                    op1 = getImm(Operand.OPSIZE.Word);
+                    op2 = getImm(Operand.OPSIZE.Byte);
+                    instr = new Enter(op1, op2);
+                    break;
+
+                case 0xc9:
+                    instr = new Leave();
+                    break;
+
+                case 0xca:
+                    op1 = getImm(Operand.OPSIZE.Word);
+                    instr = new Return(op1, true);
+                    break;
+
+                case 0xcb:
+                    instr = new Return(true);
+                    break;
+
+                case 0xcc:
+                    instr = new InterruptDebug();
+                    break;
+
+                case 0xcd:
+                    op1 = getImm(Operand.OPSIZE.Byte);
+                    instr = new Interrupt(op1);
+                    break;
+
+                case 0xce:
+                    instr = new InterruptOverflow();
+                    break;
+
+                case 0xcf:
+                    instr = new IReturn();
+                    break;
+
+            }
+            return instr;
+        }
+
+        public Instruction opd7(uint b)
+        {
+            Instruction instr = null;
+            uint modrm = 0;
+            Operand.OPSIZE size = (b % 2 == 0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord;
             switch (b)
             {
                 case 0xd0:
-                case 0xd2:
-        //            modrm = getNextByte();
-        //            opcode = opcodecd[(modrm % 0x40) / 0x08];
-        //            op1 = getModrm(modrm, OPSIZE.Byte);
-        //            op2 = (b == 0xd0) ? "1" : "cl";
-        //            opcount = 2;
+                case 0xd1:
+                    modrm = getNextByte();
+                    op1 = getModrm(modrm, size);
+                    op2 = new Immediate(1, Operand.OPSIZE.Byte);
+                    instr = BitOps(((modrm % 0x40) / 0x08), op1, op2);
                     break;
 
-                case 0xd1:
+                case 0xd2:
                 case 0xd3:
-        //            modrm = getNextByte();
-        //            opcode = opcodecd[(modrm % 0x40) / 0x08];
-        //            op1 = getModrm(modrm, OPSIZE.DWord);
-        //            op2 = (b == 0xd1) ? "1" : "cl";
-        //            opcount = 2;
+                    modrm = getNextByte();
+                    op1 = getModrm(modrm, size);
+                    op2 = getReg(Operand.OPSIZE.Byte, 1);                    
+                    instr = BitOps(((modrm % 0x40) / 0x08), op1, op2);
                     break;
 
                 case 0xd4:
-                case 0xd5:                    
-        //            opcode = (b == 0xd4) ? "aamb" : "aadb";
-        //            op1 = getImm(OPSIZE.Byte);
-        //            opcount = 1;
-        //            if ("0Ah".Equals(op1))
-        //            {
-        //                opcode = (b == 0xd4) ? "aam" : "aad";
-        //                opcount = 0;
-        //            }
-                    break;
+                case 0xd5:
+                    op1 = getImm(Operand.OPSIZE.Byte);
+                    AsciiAdjust.MODE mode = (b == 0xd4) ? AsciiAdjust.MODE.Mult : AsciiAdjust.MODE.Div;
+                    if (((Immediate)op1).val == 10)
+                    {
+                        instr = new AsciiAdjust(mode);      //base 10 is implied & doesn't need an operand
+                    }
+                    else
+                    {
+                        instr = new AsciiAdjust(mode, op1);     //for bases other than 10
+                    }
+                    break;                
 
                 case 0xd6:              //0xd6 is undefined
-        //            opcode = "???";
-        //            opcount = 0;
                     break;
 
                 case 0xd7:
-        //            opcode = "xlat";
-        //            op1 = "byte ptr [ebx]";
-        //            opcount = 1;
+                    op1 = new Memory(new Register(Register.REG32.EBX), null, 1, null, Operand.OPSIZE.Byte, Segment.SEG.DS);
+                    instr = new XlateString(op1, loopprefix);
                     break;
             }
+            return instr;
         }
 
-        readonly String[] opcodeex = { "loopne", "loope", "loop", "jecxz", "in", "in", "out", "out",
-                                        "call", "jmp", "jmp", "jmp", "in", "in", "out", "out"};
+        readonly Loop.MODE[] exloop = { Loop.MODE.LOOPNE, Loop.MODE.LOOPE, Loop.MODE.LOOP, Loop.MODE.JECXZ };
 
-        public void opex(uint b)
+        public Instruction opex(uint b)
         {
-            //opcode = opcodeex[(b % 0x10)];
-            //opcount = 0;
-            //switch (b)
-            //{
-            //    case 0xe0:
-            //    case 0xe1:
-            //    case 0xe2:
-            //    case 0xe3:
-            //    case 0xeb:
-            //        op1 = rel8();
-            //        opcount = 1;
-            //        break;
+            Instruction instr = null;
+            Operand.OPSIZE size = (b % 2 == 0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord;
+            switch (b)
+            {
+                case 0xe0:
+                case 0xe1:
+                case 0xe2:
+                case 0xe3:
+                    op1 = rel8();
+                    instr = new Loop(op1, exloop[b - 0xe0]);
+                    break;
 
-            //    case 0xe4:
-            //    case 0xe5:
-            //        op1 = (b == 0xe4) ? "al" : "eax";
-            //        op2 = getImm(OPSIZE.Byte);
-            //        opcount = 2;
-            //        break;
+                case 0xe4:
+                case 0xe5:
+                case 0xec:
+                case 0xed:
+                    op1 = getReg(size, 0);
+                    op2 = (b < 0xec) ? getImm(Operand.OPSIZE.Byte) : getReg(Operand.OPSIZE.Word, 2);
+                    instr = new Input(op1, op2);
+                    break;
 
-            //    case 0xe6:
-            //    case 0xe7:
-            //        op1 = getImm(OPSIZE.Byte);
-            //        op2 = (b == 0xe6) ? "al" : "eax";
-            //        opcount = 2;
-            //        break;
+                case 0xe6:
+                case 0xe7:
+                case 0xee:
+                case 0xef:
+                    op1 = (b < 0xee) ? getImm(Operand.OPSIZE.Byte) : getReg(Operand.OPSIZE.Word, 2);
+                    op2 = getReg(size, 0);
+                    instr = new Output(op1, op2);
+                    break;
 
-            //    case 0xe8:
-            //    case 0xe9:
-            //        op1 = rel32();
-            //        opcount = 1;
-            //        break;
+                case 0xe8:
+                    op1 = rel32();
+                    instr = new Call(op1);
+                    break;
 
-            //    case 0xea:
-            //        op1 = absolute();
-            //        opcount = 1;
-            //        break;
+                case 0xe9:
+                    op1 = rel32();
+                    instr = new Jump(op1);
+                    break;
 
-            //    case 0xec:
-            //    case 0xed:
-            //        op1 = (b == 0xec) ? "al" : "eax";
-            //        op2 = "dx";
-            //        opcount = 2;
-            //        break;
+                case 0xea:
+                    op1 = absolute();
+                    instr = new Jump(op1);
+                    break;
 
-            //    case 0xee:
-            //    case 0xef:
-            //        op1 = "dx";
-            //        op2 = (b == 0xee) ? "al" : "eax";
-            //        opcount = 2;
-            //        break;
-
-                
-            //}
+                case 0xeb:
+                    op1 = rel8();
+                    instr = new Jump(op1);
+                    break;
+            }
+            return instr;
         }
+
+        readonly ClearFlag.FLAG[] fxflagclear = { ClearFlag.FLAG.Carry, ClearFlag.FLAG.Int, ClearFlag.FLAG.Dir };
+        readonly SetFlag.FLAG[] fxflagset = { SetFlag.FLAG.Carry, SetFlag.FLAG.Int, SetFlag.FLAG.Dir };
 
         //0Xf0, 0xf2, 0xf3 are prefix bytes and should never get here
-        readonly String[] opcodefx = { "???", "???", "???", "???", "hlt", "cmc", "???", "???",
-                                        "clc", "stc", "cli", "sti", "cld", "std", "???", "???"};
-        readonly String[] opcodef67 = { "test", "???", "not", "neg", "mul", "imul", "div", "idiv" };
-        readonly String[] opcodeff = { "inc", "dec", "call", "call", "jmp", "jmp", "push", "???" };
-        readonly Operand.OPSIZE[] sizeff = { Operand.OPSIZE.DWord, Operand.OPSIZE.DWord, 
-                                       Operand.OPSIZE.DWord, Operand.OPSIZE.FWord, 
-                                     Operand.OPSIZE.DWord, Operand.OPSIZE.FWord, 
-                                     Operand.OPSIZE.DWord, Operand.OPSIZE.Byte };
-        
-        public void opfx(uint b)
+        public Instruction opfx(uint b)
         {
-            //opcode = opcodefx[(b % 0x10)];
-            //opcount = 0;
-            //uint bhi = (b / 0x08) % 0x08;   //--bb b--- (top two bits should = 0)
-            //uint blo = b % 0x08;            //---- -bbb
-            //uint modrm = 0;
-            //uint mode = 0;
-            //switch (b)
-            //{
-            //    case 0xf1:              //0xf1 is undefined
-            //        opcode = "???";
-            //        opcount = 0;
-            //        break;
+            Instruction instr = null;
+            uint modrm = 0;
+            uint mode = 0;
+            Operand.OPSIZE size = (b % 2 == 0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord;
+            switch (b)
+            {
+                case 0xf1:              //0xf1 is undefined
+                    break;
 
-            //    case 0xf6:
-            //    case 0xf7:
-            //        modrm = getNextByte();
-            //        mode = (modrm % 0x40) / 0x08;
-            //        opcode = opcodef67[mode];
-            //        switch (mode)
-            //        {
-            //            case 0 :
-            //                op1 = getModrm(modrm, (b == 0xf6) ? OPSIZE.Byte : OPSIZE.DWord);
-            //                op2 = (b == 0xf6) ? getImm(OPSIZE.Byte) : getImm(OPSIZE.DWord);
-            //                opcount = 2;
-            //                break;
+                case 0xf4:
+                    instr = new Halt();
+                    break;
 
-            //            case 4:
-            //            case 6:
-            //                op1 = (b == 0xf6) ? "al" : "eax";
-            //                op2 = getModrm(modrm, (b == 0xf6) ? OPSIZE.Byte : OPSIZE.DWord);
-            //                opcount = 2;
-            //                break;
+                case 0xf5:
+                    instr = new ComplementCarry();
+                    break;
 
-            //            case 1:
-            //                opcode = "???";
-            //                opcount = 0;   
-            //                break;
+                case 0xf6:
+                case 0xf7:
+                    modrm = getNextByte();
+                    mode = (modrm % 0x40) / 0x08;
+                    switch (mode)                       //mode == 1 is undefined
+                    {
+                        case 0 :
+                            op1 = getModrm(modrm, size);
+                            op2 = getImm(size);
+                            instr = new Test(op1, op2);
+                            break;
 
-            //            case 7:
-            //                if (b == 0xf6)
-            //                {
-            //                    op1 = getModrm(modrm, OPSIZE.Byte);
-            //                    opcount = 1;
-            //                }
-            //                else
-            //                {
-            //                    op1 = "eax";
-            //                    op2 = getModrm(modrm, OPSIZE.DWord);
-            //                    opcount = 2;
-            //                }
-            //                break;
+                        case 2:
+                            op1 = getModrm(modrm, size);
+                            instr = new Not(op1);                            
+                            break;
+                        
+                        case 3:
+                            op1 = getModrm(modrm, size);
+                            instr = new Negate(op1);                            
+                            break;
 
+                        case 4:
+                            op1 = getReg(size, 0);
+                            op2 = getModrm(modrm, size);
+                            instr = new Multiply(op1, op2);
+                            break;
 
-            //            default:
-            //                op1 = getModrm(modrm, (b == 0xf6) ? OPSIZE.Byte : OPSIZE.DWord);
-            //                opcount = 1;
-            //                break;
-            //        }
-            //        break;
+                        case 5:
+                            op1 = getModrm(modrm, size);
+                            instr = new IntMultiply(op1);
+                            break;
 
-            //    case 0xfe:
-            //        modrm = getNextByte();
-            //        mode = (modrm % 0x40) / 0x08;
-            //        if (mode <= 1)
-            //        {
-            //            opcode = (mode == 0) ? "inc" : "dec";
-            //            op1 = getModrm(modrm, OPSIZE.Byte);
-            //            opcount = 1;
-            //        }
-            //        else
-            //        {
-            //            opcode = "???";     //08 - 3f, 48 - 7f \ undefined 
-            //            opcount = 0;        //88 - bf, c8 - ff /
-            //        }
-            //        break;
+                        case 6:
+                            op1 = getReg(size, 0);
+                            op2 = getModrm(modrm, size);
+                            instr = new Divide(op1, op2);
+                            break;
 
-            //    case 0xff:
-            //        modrm = getNextByte();
-            //        mode = (modrm / 0x40) % 0x04;
-            //        uint range = (modrm % 0x40) / 0x08;
-            //        if ((range <= 6) || ((mode == 3) && ((range == 3) || (range == 5)))) 
-            //        {
-            //            opcode = opcodeff[range];
-            //            op1 = getModrm(modrm, sizeff[range]);
-            //            opcount = 1;
-            //        }
-            //        else
-            //        {
-            //            opcode = "???";     //38 - 3f, 78 - 7f \ undefined 
-            //            opcount = 0;        //b8 - bf, f8 - ff /
-            //        }
-            //        break;
-            //}
+                        case 7:
+                            if (b == 0xf6)
+                            {
+                                op1 = getModrm(modrm, Operand.OPSIZE.Byte);
+                                instr = new IntDivide(op1);
+                                opcount = 1;
+                            }
+                            else
+                            {
+                                op1 = getReg(Operand.OPSIZE.DWord, 0);
+                                op2 = getModrm(modrm, Operand.OPSIZE.DWord);
+                                instr = new IntDivide(op1, op2);
+                            }
+                            break;
+                    }
+                    break;
+
+                case 0xf8:
+                case 0xfa:
+                case 0xfc:
+                    instr = new ClearFlag(fxflagclear[(b - 0xf8)/2]);
+                    break;
+
+                case 0xf9:
+                case 0xfb:
+                case 0xfd:
+                    instr = new SetFlag(fxflagset[(b - 0xf9) / 2]);
+                    break;
+
+                case 0xfe:
+                    modrm = getNextByte();
+                    op1 = getModrm(modrm, Operand.OPSIZE.Byte);
+                    mode = (modrm % 0x40) / 0x08;                   //08 - 3f, 48 - 7f \ undefined 
+                    if (mode == 0)                                  //88 - bf, c8 - ff /
+                    {                        
+                        instr = new Increment(op1);                            
+                    }
+                    else if (mode == 1)
+                    {
+                        instr = new Decrement(op1);
+                    }
+                    break;
+
+                case 0xff:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;               //38 - 3f, 78 - 7f \ undefined 
+                    uint range = (modrm % 0x40) / 0x08;         //b8 - bf, f8 - ff /
+                    switch (range)                              //range == 7 is undefined
+                    {
+                        case 0:
+                            op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                            instr = new Increment(op1);
+                            break;
+
+                        case 1:
+                            op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                            instr = new Decrement(op1);
+                            break;
+
+                        case 2:
+                            op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                            instr = new Call(op1);
+                            break;
+
+                        case 3:
+                            if (mode < 3)
+                            {
+                                op1 = getModrm(modrm, Operand.OPSIZE.FWord);
+                                instr = new Call(op1);
+                            }
+                            break;
+
+                        case 4:
+                            op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                            instr = new Jump(op1);
+                            break;
+
+                        case 5:
+                            if (mode < 3)
+                            {
+                                op1 = getModrm(modrm, Operand.OPSIZE.FWord);
+                                instr = new Jump(op1);
+                            }
+                            break;
+
+                        case 6:
+                            op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                            instr = new Push(op1);
+                            break;
+                    }
+                    break;
+            }
+            return instr;
         }
 
 //- 80x87 instructions --------------------------------------------------------
@@ -1900,6 +1952,7 @@ namespace Origami.Asm32
                     result = new Register((Register.REG16)reg);
                     break;
                 case Operand.OPSIZE.DWord:
+                case Operand.OPSIZE.FWord:
                     result = new Register((Register.REG32)reg);
                     break;
                 case Operand.OPSIZE.MM:
@@ -1975,7 +2028,9 @@ namespace Origami.Asm32
             return getNextDWord();
         }
 
-        public Operand rel8()
+//- addresses ----------------------------------------------------------------
+
+        public Address rel8()
         {
             uint b = getNextByte();
             uint target = b + codeaddr;
@@ -1984,16 +2039,16 @@ namespace Origami.Asm32
                 target -= 0x100;
             }
 
-            Immediate imm = new Immediate(target, Operand.OPSIZE.DWord);
-            return imm;
+            Address addr = new Address(target);
+            return addr;
         }
 
-        public Operand rel32()
+        public Address rel32()
         {
             uint sum = getNextDWord();
             sum += codeaddr;
-            Immediate imm = new Immediate(sum, Operand.OPSIZE.DWord);
-            return imm;
+            Address addr = new Address(sum);
+            return addr;
         }
 
         public uint addr32()          //mem addrs aren't prefixed with '0'
