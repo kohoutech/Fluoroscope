@@ -144,7 +144,7 @@ namespace Origami.Asm32
             }
             else if ((b >= 0xd8) && (b <= 0xdf))
             {
-                //op8087(b);
+                instr = op8087(b);
             }
             else if ((b >= 0xe0) && (b <= 0xef))
             {
@@ -1129,7 +1129,7 @@ namespace Origami.Asm32
 //- 80x87 instructions --------------------------------------------------------
 
         //readonly String[] floatreg = {"st(0)", "st(1)", "st(2)", "st(3)", "st(4)", "st(5)", "st(6)", "st(7)"};
-        //readonly String[] opcoded8 = { "fadd", "fmul", "fcom", "fcomp", "fsub", "fsubr", "fdiv", "fdivr" };
+
         //readonly String[] opcoded9 = { "fld", "???", "fst", "fstp", "fldenv", "fldcw", "fnstenv", "fnstcw" };
         //readonly Operand.OPSIZE[] sized9 = { Operand.OPSIZE.DWord, Operand.OPSIZE.None, Operand.OPSIZE.DWord, 
         //                                           Operand.OPSIZE.DWord, Operand.OPSIZE.None, Instruction.
@@ -1139,102 +1139,106 @@ namespace Origami.Asm32
         //                                "fld1", "fldl2t", "fldl2e", "fldpi", "fldlg2", "fldln2", "fldz", "???",
         //                                "f2xm1", "fyl2x", "fptan", "fpatan", "fxtract", "fprem1", "fdecstp", "fincstp",
         //                                "fprem", "fyl2xp1", "fsqrt", "fsincos", "frndint", "fscale", "fsin", "fcos"};
-        //readonly String[] opcodeda = { "fiadd", "fimul", "ficom", "ficomp", "fisub", "fisubr", "fidiv", "fidivr" };
+
         //readonly String[] opcodedac0 = { "fcmovb", "fcmove", "fcmovbe", "fcmovu" };
+
         //readonly String[] opcodedb = { "fild", "fisttp", "fist", "fistp", "???", "fld", "???", "fstp" };
         //readonly Operand.OPSIZE[] sizedb = { Operand.OPSIZE.DWord, Operand.OPSIZE.DWord, Operand.OPSIZE.DWord, 
         //                                           Operand.OPSIZE.DWord, 
         //                             Operand.OPSIZE.Byte, Operand.OPSIZE.TByte, Operand.OPSIZE.Byte, Operand.OPSIZE.TByte };
         //readonly String[] opcodedbc0 = { "fcmovnb", "fcmovne", "fcmovnbe", "fcmovnu", "???", "fucomi", "fcomi", "???" };
         //readonly String[] opcodedbe0 = { "feni", "fdisi", "fnclex", "fninit", "fsetpm" };
-        //readonly String[] opcodedcc0 = { "fadd", "fmul", "fcom2", "fcomp3", "fsubr", "fsub", "fdivr", "fdiv" };
+
+
         //readonly String[] opcodedd = { "fld", "fisttp", "fst", "fstp", "frstor", "???", "fnsave", "fnstsw" };
         //readonly OPSIZE[] sizedd = { OPSIZE.QWord, OPSIZE.QWord, OPSIZE.QWord, OPSIZE.QWord, 
         //                             OPSIZE.None, OPSIZE.Byte, OPSIZE.None, OPSIZE.Word };
         //readonly String[] opcodeddc0 = { "ffree", "fxch4", "fst", "fstp", "fucom", "fucomp", "???", "???" };
-        //readonly String[] opcodedec0 = { "faddp", "fmulp", "fcomp5", "???", "fsubrp", "fsubp", "fdivrp", "fdivp" };
+
+
         //readonly String[] opcodedf = { "fild", "fisttp", "fist", "fistp", "fbld", "fild", "fbstp", "fistp" };
         //readonly OPSIZE[] sizedf = { OPSIZE.Word, OPSIZE.Word, OPSIZE.Word, OPSIZE.Word, 
         //                             OPSIZE.TByte, OPSIZE.QWord, OPSIZE.TByte, OPSIZE.QWord };
         //readonly String[] opcodedfc0 = { "ffreep", "fxch7", "fstp8", "fstp9", "???", "fucomip", "fcomip", "???" };
-        
-        
-//        public void op8087(uint b)
-//        {
-//            //all 80x87 opcodes are modr/m instrs
-//            uint modrm = getNextByte();
-//            uint mode = (modrm / 0x40) % 0x04;
-//            uint range = (modrm % 0x40) / 0x08;
-//            uint rm = (modrm % 0x08);
-//            opcode = "80x87 instr";
-//            opcount = 0;
-//            if (mode < 3)        //modrm = 0x00 - 0xbf
-//            {
-//                switch (b)
-//                {
-//                    case 0xd8:
-//                        opcode = opcoded8[range];
-//                        op1 = getModrm(modrm, OPSIZE.DWord);
-//                        opcount = 1;
-//                        break;
 
-//                    case 0xd9:
+
+        public Instruction op8087(uint b)
+        {
+            Instruction instr = null;
+            //all 80x87 opcodes are modr/m instrs
+            uint modrm = getNextByte();
+            uint mode = (modrm / 0x40) % 0x04;
+            uint range = (modrm % 0x40) / 0x08;
+            uint rm = (modrm % 0x08);
+//            opcode = "80x87 instr";
+            //opcount = 0;
+            if (mode < 3)        //modrm = 0x00 - 0xbf
+            {
+                switch (b)
+                {
+                    case 0xd8:
+//                        opcode = opcoded8[range];
+                        op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+//                        opcount = 1;
+                        break;
+
+                    case 0xd9:
 //                        opcode = opcoded9[range];
 //                        if (range != 1)
 //                        {
 //                            op1 = getModrm(modrm, sized9[range]);
 //                            opcount = 1;
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xda:
+                    case 0xda:
 //                        opcode = opcodeda[range];
 //                        op1 = getModrm(modrm, OPSIZE.DWord);
 //                        opcount = 1;
-//                        break;
+                        break;
 
-//                    case 0xdb:
+                    case 0xdb:
 //                        opcode = opcodedb[range];
 //                        if ((range != 4) || (range != 6))
 //                        {
 //                            op1 = getModrm(modrm, sizedb[range]);
 //                            opcount = 1;
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xdc:
+                    case 0xdc:
 //                        opcode = opcoded8[range];       //same opcodes as 0xd8
 //                        op1 = getModrm(modrm, OPSIZE.QWord);
 //                        opcount = 1;
-//                        break;
+                        break;
 
-//                    case 0xdd:
+                    case 0xdd:
 //                        opcode = opcodedd[range];
 //                        if (range != 5)
 //                        {
 //                            op1 = getModrm(modrm, sizedd[range]);
 //                            opcount = 1;
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xde:
+                    case 0xde:
 //                        opcode = opcodeda[range];       //same opcodes as 0xda
 //                        op1 = getModrm(modrm, OPSIZE.Word);
 //                        opcount = 1;
-//                        break;
+                        break;
 
-//                    case 0xdf:
+                    case 0xdf:
 //                        opcode = opcodedf[range];
 //                        op1 = getModrm(modrm, sizedf[range]);
 //                        opcount = 1;
-//                        break;
-//                }
-//            }
-//            else       // modrm  = 0xc0 - 0xff
-//            {
-//                switch (b)
-//                {
-//                    case 0xd8:
+                        break;
+                }
+            }
+            else       // modrm  = 0xc0 - 0xff
+            {
+                switch (b)
+                {
+                    case 0xd8:
 //                        opcode = opcoded8[range];
 //                        if ((range == 2) || (range == 3)) 
 //                        {
@@ -1247,9 +1251,9 @@ namespace Origami.Asm32
 //                            op2 = floatreg[rm];
 //                            opcount = 2;
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xd9:
+                    case 0xd9:
 //                        if (modrm < 0xe0)
 //                        {
 //                            if (range != 2)
@@ -1269,9 +1273,9 @@ namespace Origami.Asm32
 //                            opcode = opcoded9e0[modrm - 0xe0];
 //                            opcount = 0;
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xda:
+                    case 0xda:
 //                        if (modrm < 0xe0)
 //                        {
 //                            opcode = opcodedac0[range];
@@ -1284,9 +1288,9 @@ namespace Origami.Asm32
 //                            opcode = (modrm == 0xe9) ? "fucompp" : "???";
 //                            opcount = 0;
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xdb:
+                    case 0xdb:
 //                        if ((range != 4) && (range != 7))
 //                        {
 //                            opcode = opcodedbc0[range];
@@ -1299,9 +1303,9 @@ namespace Origami.Asm32
 //                            opcode = ((modrm >= 0xe0) && (modrm <= 0xe4)) ? opcodedbe0[modrm - 0xe0] : "???";
 //                            opcount = 0;                            
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xdc:
+                    case 0xdc:
 //                        opcode = opcodedcc0[range];
 //                        if ((range == 2) || (range == 3))
 //                        {
@@ -1314,9 +1318,9 @@ namespace Origami.Asm32
 //                            op2 = "st";
 //                            opcount = 2;
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xdd:
+                    case 0xdd:
 //                        if (modrm < 0xf0)
 //                        {
 //                            opcode = opcodeddc0[range];
@@ -1328,9 +1332,9 @@ namespace Origami.Asm32
 //                            opcode = "???";
 //                            opcount = 0;
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xde:
+                    case 0xde:
 //                        if (range != 3)
 //                        {
 //                            opcode = opcodedec0[range];                                
@@ -1352,9 +1356,9 @@ namespace Origami.Asm32
 //                            opcode = (modrm == 0xd9) ? "fcompp" : "???";
 //                            opcount = 0;
 //                        }
-//                        break;
+                        break;
 
-//                    case 0xdf:
+                    case 0xdf:
 //                        if ((range != 4) && (range != 7))
 //                        {
 //                            opcode = opcodedfc0[range];
@@ -1385,11 +1389,51 @@ namespace Origami.Asm32
 //                                opcount = 0;
 //                            }                            
 //                        }
-//                        break;
-//                }
-//            }
+                        break;
+                }
+            }
+            return instr;
+        }
 
-//        }
+        //readonly String[] opcoded8 = { "fadd", "fmul", "fcom", "fcomp", "fsub", "fsubr", "fdiv", "fdivr" };
+        //readonly String[] opcodeda = { "fiadd", "fimul", "ficom", "ficomp", "fisub", "fisubr", "fidiv", "fidivr" };
+        
+        //readonly String[] opcodedcc0 = { "fadd", "fmul", "fcom2", "fcomp3", "fsubr", "fsub", "fdivr", "fdiv" };
+        //readonly String[] opcodedec0 = { "faddp", "fmulp", "fcomp5", "???", "fsubrp", "fsubp", "fdivrp", "fdivp" };
+
+        public Instruction Arithmetic87Ops(uint b, Operand op1, bool intop, bool pop)
+        {
+            Instruction instr = null;
+            switch (b)
+            {
+                case 0x00:
+                    instr = new FAdd(op1, intop, pop);
+                    break;
+                case 0x01:
+                    instr = new FMulitply(op1, intop, pop);
+                    break;
+                case 0x02:
+                    instr = new FCompare(op1, intop, pop, false, false, false);
+                    break;
+                case 0x03:
+                    instr = new FCompare(op1, intop, true, false, false, false);
+                    break;
+                case 0x04:
+                    instr = new FSubtract(op1, intop, pop, false);
+                    break;
+                case 0x05:
+                    instr = new FSubtract(op1, intop, pop, true);
+                    break;
+                case 0x06:
+                    instr = new FDivide(op1, intop, pop, false);
+                    break;
+                case 0x07:
+                    instr = new FDivide(op1, intop, pop, true);
+                    break;
+            }
+            return instr;
+        }
+
 
 //- two byte instructions -----------------------------------------------------
 

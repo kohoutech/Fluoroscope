@@ -24,21 +24,128 @@ using System.Text;
 
 namespace Origami.Asm32
 {
+
+//- arithmetic ----------------------------------------------------------------
+
     public class FAdd : Instruction
     {
+        bool intop;
+        bool pop;
+
+        public FAdd(Operand _op1, bool _intop, bool _pop)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            intop = _intop;
+            pop = _pop;
+        }
+
+        public override string ToString()
+        {
+            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+        }
     }
 
     public class FSubtract : Instruction
     {
+        bool intop;
+        bool pop;
+        bool reverse;
+
+        public FSubtract(Operand _op1, bool _intop, bool _pop, bool _rev)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            intop = _intop;
+            pop = _pop;
+            reverse = _rev;
+        }
+
+        public override string ToString()
+        {
+            String result = (intop ? "FISUB" : (pop) ? "FSUBP" : "FSUB");
+            if (reverse)
+            {
+                result = result + "R";
+            }
+            return result;
+        }
     }
 
     public class FMulitply : Instruction
     {
+        bool intop;
+        bool pop;
+
+        public FMulitply(Operand _op1, bool _intop, bool _pop)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            intop = _intop;
+            pop = _pop;
+        }
+
+        public override string ToString()
+        {
+            return (intop ? "FIMUL" : (pop) ? "FMULP" : "FMUL");
+        }
     }
 
     public class FDivide : Instruction
     {
+        bool intop;
+        bool pop;
+        bool reverse;
+
+        public FDivide(Operand _op1, bool _intop, bool _pop, bool _rev)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            intop = _intop;
+            pop = _pop;
+            reverse = _rev;
+        }
+
+        public override string ToString()
+        {
+            String result = (intop ? "FIDIV" : (pop) ? "FDIVP" : "FDIV");
+            if (reverse)
+            {
+                result = result + "R";
+            }
+            return result;
+        }
     }
+
+    public class FIncrement : Instruction
+    {
+    }
+
+    public class FDecrement : Instruction
+    {
+    }
+
+    public class FSquareRoot : Instruction
+    {
+    }
+
+    public class F2XM1 : Instruction
+    {
+    }
+
+    public class FYL2X : Instruction
+    {
+    }
+
+    public class FYL2XP1 : Instruction
+    {
+    }
+
+//- trignometric -------------------------------------------------------------
 
     public class FSine : Instruction
     {
@@ -60,27 +167,13 @@ namespace Origami.Asm32
     {
     }
 
+//- numeric ----------------------------------------------------------------
+
     public class FChangeSign : Instruction
     {
     }
 
     public class FAbsolute : Instruction
-    {
-    }
-
-    public class FSquareRoot : Instruction
-    {
-    }
-
-    public class F2XM1 : Instruction
-    {
-    }
-
-    public class FYL2X : Instruction
-    {
-    }
-
-    public class FYL2XP1 : Instruction
     {
     }
 
@@ -96,16 +189,50 @@ namespace Origami.Asm32
     {
     }
 
-    public class FRemaidner : Instruction
+    public class FRemainder : Instruction
     {
     }
 
-    public class FExchange : Instruction
-    {
-    }
+//- comparison ----------------------------------------------------------------
 
     public class FCompare : Instruction
     {
+        bool intop;
+        bool pop;
+        bool doublepop;
+        bool unordered;
+        bool setflags;
+
+        public FCompare(Operand _op1, bool _intop, bool _pop, bool _double, bool _unordered, bool _flags)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            intop = _intop;
+            pop = _pop;
+            doublepop = _double;
+            if (doublepop) pop = true;          //you have to pop once before you can pop twice!
+            unordered = _unordered;
+            setflags = _flags;
+        }
+
+        public override string ToString()
+        {
+            String result = (intop ? "FICOM" : (unordered) ? "FUCOM" : "FCOM");
+            if (setflags)
+            {
+                result = result + "I";
+            }
+            if (pop)
+            {
+                result = result + "P";
+            }
+            if (doublepop)
+            {
+                result = result + "PP";
+            }
+            return result;
+        }
     }
 
     public class FCompareInt : Instruction
@@ -125,6 +252,12 @@ namespace Origami.Asm32
     }
 
     public class FExamine : Instruction
+    {
+    }
+
+//- data operations -----------------------------------------------------------
+
+    public class FExchange : Instruction
     {
     }
 
@@ -160,15 +293,13 @@ namespace Origami.Asm32
     {
     }
 
-    public class FIncrement : Instruction
-    {
-    }
-
-    public class FDecrement : Instruction
-    {
-    }
-
     public class FFreeRegister : Instruction
+    {
+    }
+
+//- control operations --------------------------------------------------------
+
+    public class FInitialize : Instruction
     {
     }
 
@@ -176,15 +307,11 @@ namespace Origami.Asm32
     {
     }
 
-    public class FInitialize : Instruction
-    {
-    }
-
     public class FLoadEnvironment : Instruction
     {
     }
 
-    public class FSotreEnvironment : Instruction
+    public class FStoreEnvironment : Instruction
     {
     }
 
