@@ -161,31 +161,9 @@ namespace Origami.Asm32
             regxmm = REGXMM.None;
         }
 
-        public Register(REGMM rmm)
-        {
-            size = 1;
-            reg8 = REG8.None;
-            reg16 = REG16.None;
-            reg32 = REG32.None;
-            regmm = rmm;
-            regxmm = REGXMM.None;
-        }
-
-        public Register(REGXMM rxmm)
-        {
-            size = 2;
-            reg8 = REG8.None;
-            reg16 = REG16.None;
-            reg32 = REG32.None;
-            regmm = REGMM.None;
-            regxmm = rxmm;
-        }
-
         String[] reg8s = { "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH", "None" };
         String[] reg16s =  { "AX", "CX", "DX", "BX", "SP", "BP", "SI", "DI", "None" };
         String[] reg32s = { "EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI", "None" };
-        String[] regMMs = { "MM0", "MM1", "MM2", "MM3", "MM4", "MM5", "MM6", "MM7", "None" };
-        String[] regXMMs = { "XMM0", "XMM1", "XMM2", "XMM3", "XMM4", "XMM5", "XMM6", "XMM7", "None" };
 
         public override string ToString()
         {
@@ -198,6 +176,59 @@ namespace Origami.Asm32
                     break;
                 case 32: result = reg32s[(int)reg32];
                     break;
+            }
+            return result;
+        }
+    }
+
+    public class Stack87 : Operand
+    {
+        int regnum;
+        bool stackTop;
+
+        public Stack87(int _regnum, bool _top)
+        {
+            regnum = _regnum;
+            stackTop = _top;
+        }
+
+        public override string ToString()
+        {
+            return (stackTop) ? "st" : "st(" + regnum.ToString() + ")";
+        }
+    }
+
+    public class RegisterMM : Operand
+    {
+        public enum REGMM { MM0, MM1, MM2, MM3, MM4, MM5, MM6, MM7, None };
+        public enum REGXMM { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7, None };
+
+        public int size;
+        public REGMM regmm;
+        public REGXMM regxmm;
+
+        public RegisterMM(REGMM rmm)
+        {
+            size = 1;
+            regmm = rmm;
+            regxmm = REGXMM.None;
+        }
+
+        public RegisterMM(REGXMM rxmm)
+        {
+            size = 2;
+            regmm = REGMM.None;
+            regxmm = rxmm;
+        }
+
+        String[] regMMs = { "MM0", "MM1", "MM2", "MM3", "MM4", "MM5", "MM6", "MM7", "None" };
+        String[] regXMMs = { "XMM0", "XMM1", "XMM2", "XMM3", "XMM4", "XMM5", "XMM6", "XMM7", "None" };
+
+        public override string ToString()
+        {
+            String result = "???";
+            switch (size)
+            {
                 case 1: result = regMMs[(int)regmm];
                     break;
                 case 2: result = regXMMs[(int)regxmm];
@@ -205,9 +236,11 @@ namespace Origami.Asm32
             }
             return result;
         }
+
+
     }
 
-//- register ------------------------------------------------------------------
+//- seqgment ------------------------------------------------------------------
 
         //    readonly String[] seg16 = { "es", "cs", "ss", "ds", "fs", "gs", "??", "??" };    
 

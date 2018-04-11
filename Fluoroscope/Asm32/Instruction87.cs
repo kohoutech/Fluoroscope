@@ -32,11 +32,12 @@ namespace Origami.Asm32
         bool intop;
         bool pop;
 
-        public FAdd(Operand _op1, bool _intop, bool _pop)
+        public FAdd(Operand _op1, Operand _op2, bool _intop, bool _pop)
             : base()
         {
             opcount = 1;
             op1 = _op1;
+            op2 = _op2;
             intop = _intop;
             pop = _pop;
         }
@@ -53,11 +54,12 @@ namespace Origami.Asm32
         bool pop;
         bool reverse;
 
-        public FSubtract(Operand _op1, bool _intop, bool _pop, bool _rev)
+        public FSubtract(Operand _op1, Operand _op2, bool _intop, bool _pop, bool _rev)
             : base()
         {
             opcount = 1;
             op1 = _op1;
+            op2 = _op2;
             intop = _intop;
             pop = _pop;
             reverse = _rev;
@@ -79,11 +81,12 @@ namespace Origami.Asm32
         bool intop;
         bool pop;
 
-        public FMulitply(Operand _op1, bool _intop, bool _pop)
+        public FMulitply(Operand _op1, Operand _op2, bool _intop, bool _pop)
             : base()
         {
             opcount = 1;
             op1 = _op1;
+            op2 = _op2;
             intop = _intop;
             pop = _pop;
         }
@@ -100,11 +103,12 @@ namespace Origami.Asm32
         bool pop;
         bool reverse;
 
-        public FDivide(Operand _op1, bool _intop, bool _pop, bool _rev)
+        public FDivide(Operand _op1, Operand _op2, bool _intop, bool _pop, bool _rev)
             : base()
         {
             opcount = 1;
             op1 = _op1;
+            op2 = _op2;
             intop = _intop;
             pop = _pop;
             reverse = _rev;
@@ -203,11 +207,12 @@ namespace Origami.Asm32
         bool unordered;
         bool setflags;
 
-        public FCompare(Operand _op1, bool _intop, bool _pop, bool _double, bool _unordered, bool _flags)
+        public FCompare(Operand _op1, Operand _op2, bool _intop, bool _pop, bool _double, bool _unordered, bool _flags)
             : base()
         {
             opcount = 1;
             op1 = _op1;
+            op2 = _op2;
             intop = _intop;
             pop = _pop;
             doublepop = _double;

@@ -1170,16 +1170,14 @@ namespace Origami.Asm32
             uint mode = (modrm / 0x40) % 0x04;
             uint range = (modrm % 0x40) / 0x08;
             uint rm = (modrm % 0x08);
-//            opcode = "80x87 instr";
-            //opcount = 0;
+
             if (mode < 3)        //modrm = 0x00 - 0xbf
             {
                 switch (b)
                 {
                     case 0xd8:
-//                        opcode = opcoded8[range];
                         op1 = getModrm(modrm, Operand.OPSIZE.DWord);
-//                        opcount = 1;
+                        instr = Arithmetic87Ops(range, op1, null, false, false);
                         break;
 
                     case 0xd9:
@@ -1239,18 +1237,17 @@ namespace Origami.Asm32
                 switch (b)
                 {
                     case 0xd8:
-//                        opcode = opcoded8[range];
-//                        if ((range == 2) || (range == 3)) 
-//                        {
-//                            op1 = floatreg[rm];
-//                            opcount = 1;
-//                        }
-//                        else 
-//                        {
-//                            op1 = "st";
-//                            op2 = floatreg[rm];
-//                            opcount = 2;
-//                        }
+                        if ((range == 2) || (range == 3)) 
+                        {
+                            op1 = new Stack87((int)rm, false);
+                            op2 = null;
+                        }
+                        else 
+                        {
+                            op1 = new Stack87(0, true);
+                            op2 = new Stack87((int)rm, false);
+                        }
+                        instr = Arithmetic87Ops(range, op1, op2, false, false);
                         break;
 
                     case 0xd9:
@@ -1401,34 +1398,34 @@ namespace Origami.Asm32
         //readonly String[] opcodedcc0 = { "fadd", "fmul", "fcom2", "fcomp3", "fsubr", "fsub", "fdivr", "fdiv" };
         //readonly String[] opcodedec0 = { "faddp", "fmulp", "fcomp5", "???", "fsubrp", "fsubp", "fdivrp", "fdivp" };
 
-        public Instruction Arithmetic87Ops(uint b, Operand op1, bool intop, bool pop)
+        public Instruction Arithmetic87Ops(uint b, Operand op1, Operand op2, bool intop, bool pop)
         {
             Instruction instr = null;
             switch (b)
             {
                 case 0x00:
-                    instr = new FAdd(op1, intop, pop);
+                    instr = new FAdd(op1, op2, intop, pop);
                     break;
                 case 0x01:
-                    instr = new FMulitply(op1, intop, pop);
+                    instr = new FMulitply(op1, op2, intop, pop);
                     break;
                 case 0x02:
-                    instr = new FCompare(op1, intop, pop, false, false, false);
+                    instr = new FCompare(op1, op2, intop, pop, false, false, false);
                     break;
                 case 0x03:
-                    instr = new FCompare(op1, intop, true, false, false, false);
+                    instr = new FCompare(op1, op2, intop, true, false, false, false);
                     break;
                 case 0x04:
-                    instr = new FSubtract(op1, intop, pop, false);
+                    instr = new FSubtract(op1, op2, intop, pop, false);
                     break;
                 case 0x05:
-                    instr = new FSubtract(op1, intop, pop, true);
+                    instr = new FSubtract(op1, op2, intop, pop, true);
                     break;
                 case 0x06:
-                    instr = new FDivide(op1, intop, pop, false);
+                    instr = new FDivide(op1, op2, intop, pop, false);
                     break;
                 case 0x07:
-                    instr = new FDivide(op1, intop, pop, true);
+                    instr = new FDivide(op1, op2, intop, pop, true);
                     break;
             }
             return instr;
