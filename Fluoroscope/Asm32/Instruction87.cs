@@ -35,7 +35,7 @@ namespace Origami.Asm32
         public FAdd(Operand _op1, Operand _op2, bool _intop, bool _pop)
             : base()
         {
-            opcount = 1;
+            opcount = (_op2 != null) ? 2 : 1;
             op1 = _op1;
             op2 = _op2;
             intop = _intop;
@@ -57,7 +57,7 @@ namespace Origami.Asm32
         public FSubtract(Operand _op1, Operand _op2, bool _intop, bool _pop, bool _rev)
             : base()
         {
-            opcount = 1;
+            opcount = (_op2 != null) ? 2 : 1;
             op1 = _op1;
             op2 = _op2;
             intop = _intop;
@@ -84,7 +84,7 @@ namespace Origami.Asm32
         public FMulitply(Operand _op1, Operand _op2, bool _intop, bool _pop)
             : base()
         {
-            opcount = 1;
+            opcount = (_op2 != null) ? 2 : 1;
             op1 = _op1;
             op2 = _op2;
             intop = _intop;
@@ -106,7 +106,7 @@ namespace Origami.Asm32
         public FDivide(Operand _op1, Operand _op2, bool _intop, bool _pop, bool _rev)
             : base()
         {
-            opcount = 1;
+            opcount = (_op2 != null) ? 2 : 1;
             op1 = _op1;
             op2 = _op2;
             intop = _intop;

@@ -1130,10 +1130,6 @@ namespace Origami.Asm32
 
         //readonly String[] floatreg = {"st(0)", "st(1)", "st(2)", "st(3)", "st(4)", "st(5)", "st(6)", "st(7)"};
 
-        //readonly String[] opcoded9 = { "fld", "???", "fst", "fstp", "fldenv", "fldcw", "fnstenv", "fnstcw" };
-        //readonly Operand.OPSIZE[] sized9 = { Operand.OPSIZE.DWord, Operand.OPSIZE.None, Operand.OPSIZE.DWord, 
-        //                                           Operand.OPSIZE.DWord, Operand.OPSIZE.None, Instruction.
-        //                                           OPSIZE.Word, Operand.OPSIZE.None, Operand.OPSIZE.Word };
         //readonly String[] opcoded9c0 = { "fld", "fxch", "???", "fstp1" };
         //readonly String[] opcoded9e0 = {"fchs", "fabs", "???", "???", "ftst", "fxam", "???", "???", 
         //                                "fld1", "fldl2t", "fldl2e", "fldpi", "fldlg2", "fldln2", "fldz", "???",
@@ -1180,14 +1176,46 @@ namespace Origami.Asm32
                         instr = Arithmetic87Ops(range, op1, null, false, false);
                         break;
 
+                                //readonly String[] opcoded9 = { "fld", "???", "fst", "fstp", "fldenv", "fldcw", "fnstenv", "fnstcw" };
+                    //readonly Operand.OPSIZE[] sized9 = { Operand.OPSIZE.DWord, Operand.OPSIZE.None, Operand.OPSIZE.DWord, 
+                    //                                           Operand.OPSIZE.DWord, Operand.OPSIZE.None, Instruction.
+                    //                                           OPSIZE.Word, Operand.OPSIZE.None, Operand.OPSIZE.Word };
+
                     case 0xd9:
-//                        opcode = opcoded9[range];
-//                        if (range != 1)
-//                        {
-//                            op1 = getModrm(modrm, sized9[range]);
-//                            opcount = 1;
-//                        }
+                        //                        opcode = opcoded9[range];
+                        //                        if (range != 1)
+                        //                        {
+                        //                            op1 = getModrm(modrm, sized9[range]);
+                        //                            opcount = 1;
+                        //                        }
+                        switch (range)
+                        {
+                            case 0x00:
+                                op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                                instr = new FLoad();
+                                break;
+                            case 0x02:
+                            case 0x03:
+                                op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                                instr = new FStore();
+                                break;
+                            case 0x04:
+                                instr = new FLoadEnvironment();
+                                break;
+                            case 0x05:
+                                op1 = getModrm(modrm, Operand.OPSIZE.Word);
+                                instr = new FLoadControlWord();
+                                break;
+                            case 0x06:
+                                instr = new FStoreEnvironment();
+                                break;
+                            case 0x07:
+                                op1 = getModrm(modrm, Operand.OPSIZE.Word);
+                                instr = new FStoreControlWord();
+                                break;
+                        }
                         break;
+                    
 
                     case 0xda:
 //                        opcode = opcodeda[range];
@@ -1995,12 +2023,6 @@ namespace Origami.Asm32
                 case Operand.OPSIZE.DWord:
                 case Operand.OPSIZE.FWord:
                     result = new Register((Register.REG32)reg);
-                    break;
-                case Operand.OPSIZE.MM:
-                    result = new Register((Register.REGMM)reg);
-                    break;
-                case Operand.OPSIZE.XMM:
-                    result = new Register((Register.REGXMM)reg);
                     break;
             }
 

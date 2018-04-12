@@ -26,7 +26,7 @@ namespace Origami.Asm32
 {
     public class Operand
     {
-       public enum OPSIZE { Byte, SignedByte, Word, DWord, QWord, FWord, TByte, MM, XMM, None };
+       public enum OPSIZE { Byte, SignedByte, Word, DWord, QWord, FWord, TByte, None };
     }
 
 //- immediate ----------------------------------------------------------------
@@ -121,15 +121,11 @@ namespace Origami.Asm32
         public enum REG8 { AL, CL, DL, BL, AH, CH, DH, BH, None };
         public enum REG16 { AX, CX, DX, BX, SP, BP, SI, DI, None };
         public enum REG32 { EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI, None };
-        public enum REGMM { MM0, MM1, MM2, MM3, MM4, MM5, MM6, MM7, None };
-        public enum REGXMM { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7, None };
 
         public int size;
         public REG8 reg8;
         public REG16 reg16;
         public REG32 reg32;
-        public REGMM regmm;
-        public REGXMM regxmm;
 
         public Register(REG32 r32)
         {
@@ -137,8 +133,6 @@ namespace Origami.Asm32
             reg8 = REG8.None;
             reg16 = REG16.None;
             reg32 = r32;
-            regmm = REGMM.None;
-            regxmm = REGXMM.None;
         }
 
         public Register(REG16 r16)
@@ -147,8 +141,6 @@ namespace Origami.Asm32
             reg8 = REG8.None;
             reg16 = r16;
             reg32 = REG32.None;
-            regmm = REGMM.None;
-            regxmm = REGXMM.None;
         }
 
         public Register(REG8 r8)
@@ -157,8 +149,6 @@ namespace Origami.Asm32
             reg8 = r8;
             reg16 = REG16.None;
             reg32 = REG32.None;
-            regmm = REGMM.None;
-            regxmm = REGXMM.None;
         }
 
         String[] reg8s = { "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH", "None" };
@@ -226,18 +216,9 @@ namespace Origami.Asm32
 
         public override string ToString()
         {
-            String result = "???";
-            switch (size)
-            {
-                case 1: result = regMMs[(int)regmm];
-                    break;
-                case 2: result = regXMMs[(int)regxmm];
-                    break;
-            }
-            return result;
+            return (size == 1) ? regMMs[(int)regmm] : regXMMs[(int)regxmm];
+            
         }
-
-
     }
 
 //- seqgment ------------------------------------------------------------------
@@ -291,7 +272,7 @@ namespace Origami.Asm32
 
         public String getSizePtrStr(Operand.OPSIZE size)
         {
-        //    if (operandSizeOverride && (size == Operand.OPSIZE.DWord)) size = Operand.OPSIZE.Word;
+           //if (operandSizeOverride && (size == Operand.OPSIZE.DWord)) size = Operand.OPSIZE.Word;
 
             String result = "???";
             if (size == Operand.OPSIZE.Byte) result = "byte ptr ";
@@ -300,8 +281,8 @@ namespace Origami.Asm32
             if (size == Operand.OPSIZE.QWord) result = "qword ptr ";
             if (size == Operand.OPSIZE.FWord) result = "fword ptr ";
             if (size == Operand.OPSIZE.TByte) result = "tbyte ptr ";
-            if (size == Operand.OPSIZE.MM) result = "mmword ptr ";
-            if (size == Operand.OPSIZE.XMM) result = "xmmword ptr ";
+            //if (size == Operand.OPSIZE.MM) result = "mmword ptr ";
+            //if (size == Operand.OPSIZE.XMM) result = "xmmword ptr ";
             if (size == Operand.OPSIZE.None) result = "";
             return result;
         }
