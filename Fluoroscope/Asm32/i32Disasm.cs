@@ -1128,20 +1128,6 @@ namespace Origami.Asm32
 
 //- 80x87 instructions --------------------------------------------------------
 
-        //readonly String[] floatreg = {"st(0)", "st(1)", "st(2)", "st(3)", "st(4)", "st(5)", "st(6)", "st(7)"};
-
-        //readonly String[] opcodedd = { "fld", "fisttp", "fst", "fstp", "frstor", "???", "fnsave", "fnstsw" };
-        //readonly OPSIZE[] sizedd = { OPSIZE.QWord, OPSIZE.QWord, OPSIZE.QWord, OPSIZE.QWord, 
-        //                             OPSIZE.None, OPSIZE.Byte, OPSIZE.None, OPSIZE.Word };
-        //readonly String[] opcodeddc0 = { "ffree", "fxch4", "fst", "fstp", "fucom", "fucomp", "???", "???" };
-
-
-        //readonly String[] opcodedf = { "fild", "fisttp", "fist", "fistp", "fbld", "fild", "fbstp", "fistp" };
-        //readonly OPSIZE[] sizedf = { OPSIZE.Word, OPSIZE.Word, OPSIZE.Word, OPSIZE.Word, 
-        //                             OPSIZE.TByte, OPSIZE.QWord, OPSIZE.TByte, OPSIZE.QWord };
-        //readonly String[] opcodedfc0 = { "ffreep", "fxch7", "fstp8", "fstp9", "???", "fucomip", "fcomip", "???" };
-
-
         public Instruction op8087(uint b)
         {
             Instruction instr = null;
@@ -1157,7 +1143,7 @@ namespace Origami.Asm32
                 {
                     case 0xd8:
                         op1 = getModrm(modrm, Operand.OPSIZE.DWord);
-                        instr = Arithmetic87Ops(range, op1, null, false, false);
+                        instr = Arithmetic87Ops(range, op1, null, false, false, true);
                         break;
 
                     case 0xd9:
@@ -1193,22 +1179,11 @@ namespace Origami.Asm32
 
                     case 0xda:
                         op1 = getModrm(modrm, Operand.OPSIZE.DWord);
-                        instr = Arithmetic87Ops(range, op1, null, true, false);
+                        instr = Arithmetic87Ops(range, op1, null, true, false, true);
                         break;
 
-                    //readonly String[] opcodedb = { "fild", "fisttp", "fist", "fistp", "???", "fld", "???", "fstp" };
-                    //readonly Operand.OPSIZE[] sizedb = { Operand.OPSIZE.DWord, Operand.OPSIZE.DWord, Operand.OPSIZE.DWord, 
-                    //                                           Operand.OPSIZE.DWord, 
-                    //                             Operand.OPSIZE.Byte, Operand.OPSIZE.TByte, Operand.OPSIZE.Byte, Operand.OPSIZE.TByte };
-
                     case 0xdb:
-//                        opcode = opcodedb[range];
-//                        if ((range != 4) || (range != 6))
-//                        {
-//                            op1 = getModrm(modrm, sizedb[range]);
-//                            opcount = 1;
-//                        }
-                                                switch (range)
+                        switch (range)
                         {
                             case 0x00:
                                 op1 = getModrm(modrm, Operand.OPSIZE.DWord);
@@ -1227,41 +1202,97 @@ namespace Origami.Asm32
                                 instr = new FStoreInteger(op1, true, false);
                                 break;
                             case 0x05:
-                                op1 = getModrm(modrm, Operand.OPSIZE.Byte);
+                                op1 = getModrm(modrm, Operand.OPSIZE.TByte);
                                 instr = new FLoad(op1);
                                 break;
                             case 0x07:
-                                op1 = getModrm(modrm, Operand.OPSIZE.Byte);
+                                op1 = getModrm(modrm, Operand.OPSIZE.TByte);
                                 instr = new FStore(op1, true);
                                 break;
                         }
                         break;
 
                     case 0xdc:
-//                        opcode = opcoded8[range];       //same opcodes as 0xd8
-//                        op1 = getModrm(modrm, OPSIZE.QWord);
-//                        opcount = 1;
+                        op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                        instr = Arithmetic87Ops(range, op1, null, false, false, true);
                         break;
 
                     case 0xdd:
-//                        opcode = opcodedd[range];
-//                        if (range != 5)
-//                        {
-//                            op1 = getModrm(modrm, sizedd[range]);
-//                            opcount = 1;
-//                        }
+                        switch (range)
+                        {
+                            case 0x00:
+                                op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                                instr = new FLoad(op1);
+                                break;
+                            case 0x01:
+                                op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                                instr = new FStoreInteger(op1, true, true);
+                                break;
+                            case 0x02:
+                                op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                                instr = new FStore(op1, false);
+                                break;
+                            case 0x03:
+                                op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                                instr = new FStore(op1, true);
+                                break;
+                            case 0x04:
+                                op1 = getModrm(modrm, Operand.OPSIZE.None);
+                                instr = new FRestoreState(op1);
+                                break;
+                            case 0x06:
+                                op1 = getModrm(modrm, Operand.OPSIZE.None);
+                                instr = new FSaveState(op1);
+                                break;
+                            case 0x07:
+                                op1 = getModrm(modrm, Operand.OPSIZE.Word);
+                                instr = new FStoreStatusWord(op1);
+                                break;
+                        }
                         break;
 
+
                     case 0xde:
-//                        opcode = opcodeda[range];       //same opcodes as 0xda
-//                        op1 = getModrm(modrm, OPSIZE.Word);
-//                        opcount = 1;
+                        op1 = getModrm(modrm, Operand.OPSIZE.Word);
+                        instr = Arithmetic87Ops(range, op1, null, true, false, true);
                         break;
 
                     case 0xdf:
-//                        opcode = opcodedf[range];
-//                        op1 = getModrm(modrm, sizedf[range]);
-//                        opcount = 1;
+                        switch (range)
+                        {
+                            case 0x00:
+                                op1 = getModrm(modrm, Operand.OPSIZE.Word);
+                                instr = new FLoadInteger(op1);
+                                break;
+                            case 0x01:
+                                op1 = getModrm(modrm, Operand.OPSIZE.Word);
+                                instr = new FStoreInteger(op1, true, true);
+                                break;
+                            case 0x02:
+                                op1 = getModrm(modrm, Operand.OPSIZE.Word);
+                                instr = new FStoreInteger(op1, false, false);
+                                break;
+                            case 0x03:
+                                op1 = getModrm(modrm, Operand.OPSIZE.Word);
+                                instr = new FStoreInteger(op1, true, false);
+                                break;
+                            case 0x04:
+                                op1 = getModrm(modrm, Operand.OPSIZE.TByte);
+                                instr = new FLoadBCD(op1);
+                                break;
+                            case 0x05:
+                                op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                                instr = new FLoadInteger(op1);
+                                break;
+                            case 0x06:
+                                op1 = getModrm(modrm, Operand.OPSIZE.TByte);
+                                instr = new FStoreBCD(op1);
+                                break;
+                            case 0x07:
+                                op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                                instr = new FStoreInteger(op1, true, false);
+                                break;
+                        }
                         break;
                 }
             }
@@ -1280,7 +1311,7 @@ namespace Origami.Asm32
                             op1 = new Stack87(0, true);
                             op2 = new Stack87((int)rm, false);
                         }
-                        instr = Arithmetic87Ops(range, op1, op2, false, false);
+                        instr = Arithmetic87Ops(range, op1, op2, false, false, true);
                         break;
 
                     case 0xd9:
@@ -1338,34 +1369,25 @@ namespace Origami.Asm32
                         }
                         break;
 
-                    //readonly String[] opcodedbc0 = { "fcmovnb", "fcmovne", "fcmovnbe", "fcmovnu", "???", "fucomi", "fcomi", "???" };
-                    //readonly String[] opcodedbe0 = { "feni", "fdisi", "fnclex", "fninit", "fsetpm" };
-
                     case 0xdb:
-//                        if ((range != 4) && (range != 7))
-//                        {
-//                            opcode = opcodedbc0[range];
-//                            op1 = "st";
-//                            op2 = floatreg[rm];
-//                            opcount = 2;
                         if ((modrm >= 0xe0) && (modrm <= 0xe4))
                         {
                             switch (modrm)
                             {
                                 case 0xe0:
-                                    instr = new FConditionalMove(op1, op2, FConditionalMove.CONDIT.MOVNB);
+                                    instr = new FNoOp(FNoOp.NOPTYPE.FENI);
                                     break;
                                 case 0xe1:
-                                    instr = new FConditionalMove(op1, op2, FConditionalMove.CONDIT.MOVNE);
+                                    instr = new FNoOp(FNoOp.NOPTYPE.FDISI);
                                     break;
                                 case 0xe2:
-                                    instr = new FConditionalMove(op1, op2, FConditionalMove.CONDIT.MOVNBE);
+                                    instr = new FClearExceptions();
                                     break;
                                 case 0xe3:
-                                    instr = new FConditionalMove(op1, op2, FConditionalMove.CONDIT.MOVNU);
+                                    instr = new FInitialize();
                                     break;
                                 case 0xe4:
-                                    instr = new FConditionalMove(op1, op2, FConditionalMove.CONDIT.MOVNU);
+                                    instr = new FNoOp(FNoOp.NOPTYPE.FSETPM);
                                     break;
                             }
                         }
@@ -1388,119 +1410,141 @@ namespace Origami.Asm32
                                     instr = new FConditionalMove(op1, op2, FConditionalMove.CONDIT.MOVNU);
                                     break;
                                 case 0x05:
-                                    instr = new FConditionalMove(op1, op2, FConditionalMove.CONDIT.MOVU);
+                                    instr = new FCompareUnordered(op1, op2, false, false, true);
                                     break;
                                 case 0x06:
-                                    instr = new FConditionalMove(op1, op2, FConditionalMove.CONDIT.MOVU);
+                                    instr = new FCompare(op1, op2, false, false, true);
                                     break;
                             }
                         }
-
-//                        }
-//                        else
-//                        {
-//                            opcode = ((modrm >= 0xe0) && (modrm <= 0xe4)) ? opcodedbe0[modrm - 0xe0] : "???";
-//                            opcount = 0;                            
-//                        }
                         break;
 
                     case 0xdc:
-//                        opcode = opcodedcc0[range];
-//                        if ((range == 2) || (range == 3))
-//                        {
-//                            op1 = floatreg[rm];
-//                            opcount = 1;
-//                        }
-//                        else
-//                        {
-//                            op1 = floatreg[rm];
-//                            op2 = "st";
-//                            opcount = 2;
-//                        }
+                        if ((range == 2) || (range == 3))
+                        {
+                            op1 = new Stack87((int)rm, false);
+                            op2 = null;
+                        }
+                        else
+                        {
+                            op1 = new Stack87((int)rm, false);
+                            op2 = new Stack87(0, true);
+                        }
+                        instr = Arithmetic87Ops(range, op1, op2, false, false, false);
                         break;
 
                     case 0xdd:
-//                        if (modrm < 0xf0)
-//                        {
-//                            opcode = opcodeddc0[range];
-//                            op1 = floatreg[rm];
-//                            opcount = 1;
-//                        }
-//                        else
-//                        {
-//                            opcode = "???";
-//                            opcount = 0;
-//                        }
+                        if (modrm < 0xf0)
+                        {                                                       
+                            op1 = new Stack87((int)rm, false);
+                            switch (range)
+                            {
+                                case 0x00:
+                                    instr = new FFreeRegister(op1, false);
+                                    break;
+                                case 0x01:
+                                    instr = new FExchange(op1);
+                                    break;
+                                case 0x02:
+                                    instr = new FStore(op1, false);
+                                    break;
+                                case 0x03:
+                                    instr = new FStore(op1, true);
+                                    break;
+                                case 0x04:
+                                    instr = new FCompareUnordered(op1, null, false, false, false);
+                                    break;
+                                case 0x05:
+                                    instr = new FCompareUnordered(op1, null, true, false, false);
+                                    break;
+                            }
+                        }
                         break;
 
                     case 0xde:
-//                        if (range != 3)
-//                        {
-//                            opcode = opcodedec0[range];                                
-//                            if (range != 2)
-//                            {
-//                                op1 = floatreg[rm];
-//                                op2 = "st";
-//                                opcount = 2;
-//                            }
-//                            else
-//                            {
-//                                op1 = floatreg[rm];
-//                                opcount = 1;
-
-//                            }
-//                        }
-//                        else
-//                        {
-//                            opcode = (modrm == 0xd9) ? "fcompp" : "???";
-//                            opcount = 0;
-//                        }
+                        if (range != 3)
+                        {
+                            if (range == 2)
+                            {
+                                op1 = new Stack87((int)rm, false);
+                                op2 = null;
+                            }
+                            else
+                            {
+                                op1 = new Stack87((int)rm, false);
+                                op2 = new Stack87(0, true);
+                            }
+                            instr = Arithmetic87Ops(range, op1, op2, false, true, false);
+                        }
+                        else if (modrm == 0xd9)
+                        {
+                            instr = new FCompare(null, null, true, true, false);
+                        }
                         break;
 
                     case 0xdf:
-//                        if ((range != 4) && (range != 7))
-//                        {
-//                            opcode = opcodedfc0[range];
-//                            if (range >= 5)
-//                            {
-//                                op1 = "st";
-//                                op2 = floatreg[rm];
-//                                opcount = 2;
-//                            }
-//                            else
-//                            {
-//                                op1 = floatreg[rm];
-//                                opcount = 1;
+                        if ((range != 4) && (range != 7))
+                        {
+                            if (range < 5)
+                            {
+                                op1 = new Stack87((int)rm, false);
+                                op2 = null;
+                            }
+                            else
+                            {
+                                op1 = new Stack87(0, true);
+                                op2 = new Stack87((int)rm, false);
+                            }
 
-//                            }
-//                        }
-//                        else
-//                        {
-//                            if (modrm == 0xe0)
-//                            {
-//                                opcode = "fnstsw";
-//                                op1 = "ax";
-//                                opcount = 1;
-//                            }
-//                            else
-//                            {
-//                                opcode = "???";
-//                                opcount = 0;
-//                            }                            
-//                        }
+                            switch (range)
+                            {
+                                case 0x00:
+                                    instr = new FFreeRegister(op1, true);
+                                    break;
+                                case 0x01:
+                                    instr = new FExchange(op1);
+                                    break;
+                                case 0x02:
+                                case 0x03:
+                                    instr = new FStore(op1, true);
+                                    break;
+                                case 0x05:
+                                    instr = new FCompareUnordered(op1, op2, true, false, true);
+                                    break;
+                                case 0x06:
+                                    instr = new FCompare(op1, op2, true, false, true);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            if (modrm == 0xe0)
+                            {
+                                op1 = getReg(Operand.OPSIZE.Word, 0);
+                                instr = new FStoreStatusWord(op1);
+                            }
+                        }
                         break;
                 }
             }
             return instr;
         }
 
-        //readonly String[] opcoded8 = { "fadd", "fmul", "fcom", "fcomp", "fsub", "fsubr", "fdiv", "fdivr" };
-        //readonly String[] opcodeda = { "fiadd", "fimul", "ficom", "ficomp", "fisub", "fisubr", "fidiv", "fidivr" };
-        
-        //readonly String[] opcodedcc0 = { "fadd", "fmul", "fcom2", "fcomp3", "fsubr", "fsub", "fdivr", "fdiv" };
-        //readonly String[] opcodedec0 = { "faddp", "fmulp", "fcomp5", "???", "fsubrp", "fsubp", "fdivrp", "fdivp" };
+        public Instruction Comparison87Op(Operand op1, Operand op2, bool intop, bool pop, bool doublepop, bool flags)
+        {
+            Instruction instr = null;
+            if (intop)
+            {
+                instr = new FCompareInt(op1, op2, pop);
+            }
+            else
+            {
+                instr = new FCompare(op1, op2, pop, doublepop, flags);
+            }
+            return instr;
+        }
 
-        public Instruction Arithmetic87Ops(uint b, Operand op1, Operand op2, bool intop, bool pop)
+        public Instruction Arithmetic87Ops(uint b, Operand op1, Operand op2, bool intop, bool pop, bool rev)
         {
             Instruction instr = null;
             switch (b)
@@ -1512,22 +1556,22 @@ namespace Origami.Asm32
                     instr = new FMulitply(op1, op2, intop, pop);
                     break;
                 case 0x02:
-                    instr = new FCompare(op1, op2, pop, false, false);
+                    instr = Comparison87Op(op1, op2, intop, pop, false, false);
                     break;
                 case 0x03:
-                    instr = new FCompare(op1, op2, true, false, false);
+                    instr = Comparison87Op(op1, op2, intop, true, false, false);
                     break;
                 case 0x04:
-                    instr = new FSubtract(op1, op2, intop, pop, false);
+                    instr = new FSubtract(op1, op2, intop, pop, !rev);
                     break;
                 case 0x05:
-                    instr = new FSubtract(op1, op2, intop, pop, true);
+                    instr = new FSubtract(op1, op2, intop, pop, rev);
                     break;
                 case 0x06:
-                    instr = new FDivide(op1, op2, intop, pop, false);
+                    instr = new FDivide(op1, op2, intop, pop, !rev);
                     break;
                 case 0x07:
-                    instr = new FDivide(op1, op2, intop, pop, true);
+                    instr = new FDivide(op1, op2, intop, pop, rev);
                     break;
             }
             return instr;

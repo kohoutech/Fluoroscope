@@ -67,10 +67,14 @@ namespace Origami.Asm32
 
         public override string ToString()
         {
-            String result = (intop ? "FISUB" : (pop) ? "FSUBP" : "FSUB");
+            String result = (intop ? "FISUB" : "FSUB");
             if (reverse)
             {
                 result = result + "R";
+            }
+            if (pop)
+            {
+                result = result + "P";
             }
             return result;
         }
@@ -116,10 +120,14 @@ namespace Origami.Asm32
 
         public override string ToString()
         {
-            String result = (intop ? "FIDIV" : (pop) ? "FDIVP" : "FDIV");
+            String result = (intop ? "FIDIV" : "FDIV");
             if (reverse)
             {
                 result = result + "R";
+            }
+            if (pop)
+            {
+                result = result + "P";
             }
             return result;
         }
@@ -251,9 +259,6 @@ namespace Origami.Asm32
         }
     }
 
-    //            "f2xm1", "fyl2x", "fptan", "fpatan", "fxtract", "fprem1", "fdecstp", "fincstp",
-    //            "fprem", "fyl2xp1", "fsqrt", "fsincos", "frndint", "fscale", "fsin", "fcos"};
-
 //- stack operations ----------------------------------------------------------
 
     public class FIncrement : Instruction
@@ -283,7 +288,7 @@ namespace Origami.Asm32
         public FCompare(Operand _op1, Operand _op2, bool _pop, bool _doublepop, bool _flags)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = (_op2 != null) ? 2 : (_op1 != null) ? 1 : 0;
             op1 = _op1;
             op2 = _op2;
             pop = _pop;
@@ -365,11 +370,6 @@ namespace Origami.Asm32
             }
             return result;
         }
-
-    //public override string ToString()
-    //    {
-    //        return "FUCOMPP";
-    //    }
     }
 
     public class FTest : Instruction
@@ -405,7 +405,6 @@ namespace Origami.Asm32
         }
     }
 
-    //readonly String[] opcodedac0 = { "fcmovb", "fcmove", "fcmovbe", "fcmovu" };
     public class FConditionalMove : Instruction
     {
         public enum CONDIT { MOVB, MOVNB, MOVE, MOVNE, MOVBE, MOVNBE, MOVU, MOVNU };
@@ -487,6 +486,17 @@ namespace Origami.Asm32
 
     public class FLoadBCD : Instruction
     {
+        public FLoadBCD(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FBLD";
+        }
     }
 
     public class FLoadConstant : Instruction
@@ -571,20 +581,53 @@ namespace Origami.Asm32
 
     public class FStoreBCD : Instruction
     {
+        public FStoreBCD(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FBSTP";
+        }
     }
 
     public class FFreeRegister : Instruction
     {
+        bool pop;
+        
+        public FFreeRegister(Operand _op1, bool _pop)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            pop = _pop;
+        }
+
+        public override string ToString()
+        {
+            return (pop) ? "FFREEP" : "FFREE";
+        }
     }
 
 //- control operations --------------------------------------------------------
 
     public class FInitialize : Instruction
     {
+        public override string ToString()
+        {
+            return "FNINIT";
+        }
     }
 
     public class FClearExceptions : Instruction
     {
+        public override string ToString()
+        {
+            return "FNCLEX";
+        }
     }
 
     public class FLoadEnvironment : Instruction
@@ -610,7 +653,6 @@ namespace Origami.Asm32
             opcount = 1;
             op1 = _op1;
         }
-
 
         public override string ToString()
         {
@@ -648,23 +690,74 @@ namespace Origami.Asm32
         }
     }
 
-    public class FStatusControlWord : Instruction
+    public class FStoreStatusWord : Instruction
     {
+        public FStoreStatusWord(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FNSTSW";
+        }
     }
 
     public class FSaveState : Instruction
     {
+        public FSaveState(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FNSAVE";
+        }
     }
 
     public class FRestoreState : Instruction
     {
+        public FRestoreState(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FRSTOR";
+        }
     }
+
+//- miscellaneous -------------------------------------------------------------
 
     public class FNoOp : Instruction
     {
+        public enum NOPTYPE {  FNOP, FENI, FDISI, FSETPM };
+
+        NOPTYPE nopType;
+
+        public FNoOp()
+        {
+            nopType = NOPTYPE.FNOP;
+        }
+
+        public FNoOp(NOPTYPE type)
+        {
+            nopType = type;
+        }
+
+        String[] nopTypeStr = { "FNOP", "FENI", "FDISI", "FSETPM" };
+
         public override string ToString()
         {
-            return "FNOP";
+            return nopTypeStr[(int)nopType];
         }
     }
 }
