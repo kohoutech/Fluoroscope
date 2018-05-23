@@ -44,7 +44,8 @@ namespace Fluoroscope
 
         public void openSourceFile(String filename)
         {
-            winexe = Win32Reader.readExe(filename);      //read in file            
+            winexe = new Win32Exe();
+            winexe.readFile(filename);      //read in file            
         }
 
         public void closeSourceFile()

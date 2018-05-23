@@ -60,6 +60,8 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Win32\CodeSection.cs" />
+    <Compile Include="Win32\ResourceTable.cs" />
+    <Compile Include="Win32\SourceFile.cs" />
     <Compile Include="Win32\Win32Exe.cs" />
     <Compile Include="Fluoroscope.cs" />
     <Compile Include="Asm32\i32Disasm.cs" />
@@ -72,8 +74,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Win32\Section.cs" />
-    <Compile Include="Win32\Win32File.cs" />
     <Compile Include="Win32\Win32Header.cs" />
+    <Compile Include="Win32\Win32Obj.cs" />
     <EmbeddedResource Include="FluoroWindow.resx">
       <DependentUpon>FluoroWindow.cs</DependentUpon>
     </EmbeddedResource>
