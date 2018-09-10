@@ -56,7 +56,17 @@ namespace Fluoroscope
         {
             fluoroStatusLabel.Text = "Loading...";
             closeFile();
-            fscope.openSourceFile(filename);            
+            try
+            {
+                fscope.openSourceFile(filename);
+            }
+            catch (Win32ReadException e)
+            {
+                String msg = "unable to load " + filename + "\n" + e.Message;
+                MessageBox.Show(msg, "read error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                fluoroStatusLabel.Text = "";
+                return;
+            }
 
             Point panelPos = new Point(0, 0);
             foreach (Section section in fscope.winexe.sections)
@@ -98,6 +108,7 @@ namespace Fluoroscope
         {
             fCanvas.Controls.Clear();
             fscope.closeSourceFile();
+            Text = "Fluoroscope";
             exeHdrViewMenuItem.Enabled = false;
             exehdrToolStripButton.Enabled = false;
             dataToolStripButton.Enabled = false;
@@ -196,8 +207,6 @@ namespace Fluoroscope
         {
             fscope.showSectionCode(selectedSection.section);
         }
-
-//-----------------------------------------------------------------------------
 
     }
 }

@@ -1,5 +1,5 @@
 ﻿/* ----------------------------------------------------------------------------
-Origami Win32 Library
+Origami Asm32 Library
 Copyright (C) 1998-2018  George E Greaney
 
 This program is free software; you can redistribute it and/or
@@ -22,25 +22,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-//win32 obj files
-//https://en.wikibooks.org/wiki/X86_Disassembly/Windows_Executable_Files
-
-
-namespace MachFive.WIN32
+namespace Origami.Asm32
 {
-    class Win32Obj
+    class Symbol : Operand
     {
-        public String filename;
+        String name;
 
-        public Win32Obj()
+        public Symbol(string _name)
         {
-            filename = null;
+            name = _name;
         }
-
-        public void setSourceFile(String fname)
-        {
-            filename = fname;
-        }
-
     }
 }

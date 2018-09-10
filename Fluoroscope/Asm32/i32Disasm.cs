@@ -22,8 +22,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Origami.Asm32;
-
 //http://ref.x86asm.net/coder32.html - opcode table
 //http://wiki.osdev.org/X86-64_Instruction_Encoding - prefix information
 
@@ -36,7 +34,7 @@ namespace Origami.Asm32
         public byte[] srcBuf;           //the bytes being disassembled
         public uint srcpos;             //cur pos in source buf
         public uint codeaddr;           //cur addr of instr in mem
-        public List<int> instrBytes;    //the bytes that have been decoded for this instruction        
+        public List<byte> instrBytes;    //the bytes that have been decoded for this instruction        
         
         public String opcode;
         public int opcount;
@@ -57,7 +55,7 @@ namespace Origami.Asm32
             srcBuf = _source;           //set source buf + pos in buf when we start disassembling
             srcpos = _srcpos;           //source pos can be changed later if we need to skip over some bytes
 
-            instrBytes = new List<int>();            
+            instrBytes = new List<byte>();            
 
             codeaddr = 0;
             opcount = 0;
@@ -74,7 +72,7 @@ namespace Origami.Asm32
         public Instruction getInstr(uint _codepos)
         {
             Instruction instr = null;
-            instrBytes = new List<int>();
+            instrBytes = new List<byte>();
 
             codeaddr = _codepos;
             opcount = 0;
@@ -171,7 +169,7 @@ namespace Origami.Asm32
         public uint getNextByte()
         {
             uint b = (uint)srcBuf[srcpos++];
-            instrBytes.Add((int)b);
+            instrBytes.Add((byte)b);
             codeaddr++;
             return b;
         }
@@ -493,16 +491,16 @@ namespace Origami.Asm32
 
                 case 0x6c:
                 case 0x6d:
-                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null,
+                    op1 = new Memory(Register32.EDI, null, 1, null,
                         (b == 0x6c) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
-                    op2 = new Register(Register.REG16.DX);
+                    op2 = new Register16(REG16.DX);
                     instr = new InputString(op1, op2, loopprefix);
                     break;
 
                 case 0x6e:
                 case 0x6f:
-                    op1 = new Register(Register.REG16.DX);
-                    op2 = new Memory(new Register(Register.REG32.ESI), null, 1, null,
+                    op1 = new Register16(REG16.DX);
+                    op2 = new Memory(Register32.ESI, null, 1, null,
                         (b == 0x6c) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
                     instr = new OutputString(op1, op2, loopprefix);
                     break;
@@ -692,15 +690,15 @@ namespace Origami.Asm32
                 
                 case 0xa4:                
                 case 0xa5:
-                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null, size, Segment.SEG.ES);
-                    op2 = new Memory(new Register(Register.REG32.ESI), null, 1, null, size, Segment.SEG.DS);
+                    op1 = new Memory(Register32.EDI, null, 1, null, size, Segment.SEG.ES);
+                    op2 = new Memory(Register32.ESI, null, 1, null, size, Segment.SEG.DS);
                     instr = new MoveString(op1, op2, loopprefix);
                     break;
 
                 case 0xa6:
                 case 0xa7:
-                    op1 = new Memory(new Register(Register.REG32.ESI), null, 1, null, size, Segment.SEG.DS);
-                    op2 = new Memory(new Register(Register.REG32.EDI), null, 1, null, size, Segment.SEG.ES);
+                    op1 = new Memory(Register32.ESI, null, 1, null, size, Segment.SEG.DS);
+                    op2 = new Memory(Register32.EDI, null, 1, null, size, Segment.SEG.ES);
                     instr = new CompareString(op1, op2, loopprefix);
                     break;
                 
@@ -713,19 +711,19 @@ namespace Origami.Asm32
 
                 case 0xaa:
                 case 0xab:
-                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null, size, Segment.SEG.ES);
+                    op1 = new Memory(Register32.EDI, null, 1, null, size, Segment.SEG.ES);
                     instr = new StoreString(op1, loopprefix);
                     break;
 
                 case 0xac:
                 case 0xad:
-                    op1 = new Memory(new Register(Register.REG32.ESI), null, 1, null, size, Segment.SEG.DS);
+                    op1 = new Memory(Register32.ESI, null, 1, null, size, Segment.SEG.DS);
                     instr = new LoadString(op1, loopprefix);
                     break;
 
                 case 0xae:
                 case 0xaf:
-                    op1 = new Memory(new Register(Register.REG32.EDI), null, 1, null, size, Segment.SEG.ES);
+                    op1 = new Memory(Register32.EDI, null, 1, null, size, Segment.SEG.ES);
                     instr = new ScanString(op1, loopprefix);
                     break;                
             }
@@ -905,7 +903,7 @@ namespace Origami.Asm32
                     break;
 
                 case 0xd7:
-                    op1 = new Memory(new Register(Register.REG32.EBX), null, 1, null, Operand.OPSIZE.Byte, Segment.SEG.DS);
+                    op1 = new Memory(new Register32(REG32.EBX), null, 1, null, Operand.OPSIZE.Byte, Segment.SEG.DS);
                     instr = new XlateString(op1, loopprefix);
                     break;
             }
@@ -1739,8 +1737,6 @@ namespace Origami.Asm32
             return instr;
         }
 
-//        readonly String[] opcode0f0x = { "???", "???", "lar", "lsl", "???", "syscall", "clts", "sysret",
-//                                         "invd", "wbinvd", "???", "ud2", "???", "nop", "femms", "???"};
 //        readonly String[] opcode0f00 = { "sldt", "str", "lldt", "ltr", "verr", "verw", "jmpe", "???" };
 //        readonly String[] opcode0f01 = { "sgdt", "sidt", "lgdt", "lidt", "smsw", "???", "lmsw", "invlpg" };
 //        readonly OPSIZE[] size0f01 = { OPSIZE.FWord, OPSIZE.FWord, OPSIZE.FWord, OPSIZE.FWord, 
@@ -1761,8 +1757,8 @@ namespace Origami.Asm32
 //            uint modrm = 0;
 //            uint mode = 0;
 //            uint range = 0;
-//            switch (b)
-//            {
+            switch (b)
+            {
 //                case 0x00:
 //                    modrm = getNextByte();
 //                    mode = (modrm / 0x40) % 0x04;                        
@@ -1858,7 +1854,13 @@ namespace Origami.Asm32
 //                    op2 = getModrm(modrm, OPSIZE.DWord);
 //                    opcount = 2;
 //                    break;
-//            }
+                //        readonly String[] opcode0f0x = { "???", "???", "lar", "lsl", "???", "syscall", "clts", "sysret",
+                //                                         "invd", "wbinvd", "???", "ud2", "???", "nop", "femms", "???"};
+
+                case 0x05:
+                    instr = new SystemCall(SystemCall.MODE.SYSCALL);
+                    break;
+            }
                         return instr;
 
         }
@@ -2248,14 +2250,14 @@ namespace Origami.Asm32
             switch (size)
             {
                 case Operand.OPSIZE.Byte:
-                    result = new Register((Register.REG8)reg);
+                    result = new Register8((REG8)reg);
                     break;
                 case Operand.OPSIZE.Word:
-                    result = new Register((Register.REG16)reg);
+                    result = new Register16((REG16)reg);
                     break;
                 case Operand.OPSIZE.DWord:
                 case Operand.OPSIZE.FWord:
-                    result = new Register((Register.REG32)reg);
+                    result = new Register32((REG32)reg);
                     break;
             }
 

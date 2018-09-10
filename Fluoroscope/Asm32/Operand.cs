@@ -116,58 +116,90 @@ namespace Origami.Asm32
 
 //- register ------------------------------------------------------------------
 
+    public enum REG8 { AL, CL, DL, BL, AH, CH, DH, BH, None };
+    public enum REG16 { AX, CX, DX, BX, SP, BP, SI, DI, None };
+    public enum REG32 { EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI, None };
+
+    //base class
     public class Register : Operand
     {
-        public enum REG8 { AL, CL, DL, BL, AH, CH, DH, BH, None };
-        public enum REG16 { AX, CX, DX, BX, SP, BP, SI, DI, None };
-        public enum REG32 { EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI, None };
+    }
 
-        public int size;
+    public class Register8 : Register
+    {
         public REG8 reg8;
-        public REG16 reg16;
-        public REG32 reg32;
 
-        public Register(REG32 r32)
-        {
-            size = 32;
-            reg8 = REG8.None;
-            reg16 = REG16.None;
-            reg32 = r32;
-        }
+        public static Register8 AL = new Register8(REG8.AL);
+        public static Register8 CL = new Register8(REG8.CL);
+        public static Register8 DL = new Register8(REG8.DL);
+        public static Register8 BL = new Register8(REG8.BL);
+        public static Register8 AH = new Register8(REG8.AH);
+        public static Register8 CH = new Register8(REG8.CH);
+        public static Register8 DH = new Register8(REG8.DH);
+        public static Register8 BH = new Register8(REG8.BH);
 
-        public Register(REG16 r16)
+        public Register8(REG8 r8)
         {
-            size = 16;
-            reg8 = REG8.None;
-            reg16 = r16;
-            reg32 = REG32.None;
-        }
-
-        public Register(REG8 r8)
-        {
-            size = 8;
             reg8 = r8;
-            reg16 = REG16.None;
-            reg32 = REG32.None;
         }
 
         String[] reg8s = { "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH", "None" };
-        String[] reg16s =  { "AX", "CX", "DX", "BX", "SP", "BP", "SI", "DI", "None" };
+
+        public override string ToString()
+        {            
+            return reg8s[(int)reg8];
+        }
+    }
+
+    public class Register16 : Register
+    {
+        public REG16 reg16;
+
+        public static Register16 AX = new Register16(REG16.AX);
+        public static Register16 CX = new Register16(REG16.CX);
+        public static Register16 DX = new Register16(REG16.DX);
+        public static Register16 BX = new Register16(REG16.BX);
+        public static Register16 SP = new Register16(REG16.SP);
+        public static Register16 BP = new Register16(REG16.BP);
+        public static Register16 SI = new Register16(REG16.SI);
+        public static Register16 DI = new Register16(REG16.DI);
+
+        public Register16(REG16 r16)
+        {
+            reg16 = r16;
+        }
+
+        String[] reg16s = { "AX", "CX", "DX", "BX", "SP", "BP", "SI", "DI", "None" };
+
+        public override string ToString()
+        {
+            return reg16s[(int)reg16];
+        }
+    }
+
+    public class Register32 : Register
+    {
+        public REG32 reg32;
+
+        public static Register32 EAX = new Register32(REG32.EAX);
+        public static Register32 ECX = new Register32(REG32.ECX);
+        public static Register32 EDX = new Register32(REG32.EDX);
+        public static Register32 EBX = new Register32(REG32.EBX);
+        public static Register32 ESP = new Register32(REG32.ESP);
+        public static Register32 EBP = new Register32(REG32.EBP);
+        public static Register32 ESI = new Register32(REG32.ESI);
+        public static Register32 EDI = new Register32(REG32.EDI);        
+
+        public Register32(REG32 r32)
+        {
+            reg32 = r32;
+        }
+
         String[] reg32s = { "EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI", "None" };
 
         public override string ToString()
         {
-            String result = "???";
-            switch (size)
-            {
-                case 8 : result = reg8s[(int)reg8];
-                    break;
-                case 16: result = reg16s[(int)reg16];
-                    break;
-                case 32: result = reg32s[(int)reg32];
-                    break;
-            }
-            return result;
+            return reg32s[(int)reg32];
         }
     }
 
