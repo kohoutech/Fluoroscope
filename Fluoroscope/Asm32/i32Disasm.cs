@@ -1737,16 +1737,6 @@ namespace Origami.Asm32
             return instr;
         }
 
-//        readonly String[] opcode0f00 = { "sldt", "str", "lldt", "ltr", "verr", "verw", "jmpe", "???" };
-//        readonly String[] opcode0f01 = { "sgdt", "sidt", "lgdt", "lidt", "smsw", "???", "lmsw", "invlpg" };
-//        readonly OPSIZE[] size0f01 = { OPSIZE.FWord, OPSIZE.FWord, OPSIZE.FWord, OPSIZE.FWord, 
-//                                       OPSIZE.Word, OPSIZE.None, OPSIZE.Word, OPSIZE.None };
-//        readonly String[] opcode0f01c0 = { "???", "vmcall", "vmlaunch", "vmresume", "vmxoff", "???", "???", "???" };
-//        readonly String[] opcode0f01c8 = { "monitor", "mwait", "???", "???", "???", "???", "???", "???" };
-//        readonly String[] opcode0f01d8 = { "vmrun", "vmmcall", "vmload", "vmsave", "stgi", "clgi", "skinit", "invlpga"};
-//        readonly int[] opcount0fd8 = { 1, 0, 1, 1, 0, 0, 1, 2 };
-//        readonly String[] opcode0f01f8 = { "swapgs", "rdtscp", "???", "???", "???", "???", "???", "???" };
-
         public Instruction  op0f0x(uint b)
         {
             Instruction instr = null;
@@ -1754,53 +1744,84 @@ namespace Origami.Asm32
 //            opcount = 0;
 //            uint bhi = (b / 0x08) % 0x08;   //--bb b--- 
 //            uint blo = b % 0x08;            //---- -bbb
-//            uint modrm = 0;
-//            uint mode = 0;
-//            uint range = 0;
+            uint modrm = 0;
+            uint mode = 0;
+            uint range = 0;
+            Operand.OPSIZE size;
             switch (b)
             {
-//                case 0x00:
-//                    modrm = getNextByte();
-//                    mode = (modrm / 0x40) % 0x04;                        
-//                    range = (modrm % 0x40) / 0x08;
-//                    if (range <= 6)
-//                    {
-//                        opcode = opcode0f00[range];
-//                        op1 = getModrm(modrm, ((range == 6) ? OPSIZE.DWord : (((mode == 3) && (range < 2)) ? OPSIZE.DWord : OPSIZE.Word)));
-//                        opcount = 1;
-//                    }
-//                    else
-//                    {
-//                        opcode = "???";
-//                        opcount = 0;   
-//                    }
-//                    break;
+                case 0x00:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;                        
+                    range = (modrm % 0x40) / 0x08;
+                    size = ((mode == 3) && (range < 2)) ? Operand.OPSIZE.DWord : Operand.OPSIZE.Word;
+                    op1 = getModrm(modrm, size);
+                    switch(range) {
+                        case 0:
+                            instr = new StoreDescriptor(op1, StoreDescriptor.MODE.SLDT);
+                            break;
+                        case 1:
+                            instr = new StoreTaskRegister(op1);
+                            break;
+                        case 2:
+                            instr = new LoadDescriptor(op1, LoadDescriptor.MODE.LLDT);
+                            break;
+                        case 3:
+                            instr = new LoadTaskRegister(op1);
+                            break;
+                        case 4:
+                            instr = new VerifySegment(op1, VerifySegment.MODE.VERR);
+                            break;
+                        case 5:
+                            instr = new VerifySegment(op1, VerifySegment.MODE.VERW);
+                            break;
+                    }
+                    break;
 
-//                case 0x01:
-//                    modrm = getNextByte();
-//                    mode = (modrm / 0x40) % 0x04;                        
-//                    range = (modrm % 0x40) / 0x08;
-//                    if (mode < 3) {
-//                        if (range != 5)
+                case 0x01:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;                        
+                    range = (modrm % 0x40) / 0x08;
+                    if (mode < 3) {
+                        size = (range <= 3) ? Operand.OPSIZE.FWord : ((range % 2 == 0) ? Operand.OPSIZE.Word : Operand.OPSIZE.None);
+                        op1 = getModrm(modrm, size);
+                        switch (range)
+                        {
+                            case 0:
+                                instr = new StoreDescriptor(op1, StoreDescriptor.MODE.SGDT);
+                                break;
+                            case 1:
+                                instr = new StoreDescriptor(op1, StoreDescriptor.MODE.SIDT);
+                                break;
+                            case 2:
+                                instr = new LoadDescriptor(op1, LoadDescriptor.MODE.LGDT);
+                                break;
+                            case 3:
+                                instr = new LoadDescriptor(op1, LoadDescriptor.MODE.LIDT);
+                                break;
+                            case 4:
+                                instr = new StoreMachineStatusWord(op1);
+                                break;
+                            case 6:
+                                instr = new LoadSMachinetatusWord(op1);
+                                break;
+                            case 7:
+                                instr = new InvalidateTLB(op1);
+                                break;
+                        }
+
+                    } else {
+
+                        //                        switch (range)
 //                        {
-//                            opcode = opcode0f01[range];                        
-//                            op1 = getModrm(modrm, size0f01[range]);
-//                            opcount = 1;
-//                        }
-//                        else
-//                        {
-//                            opcode = "???";
-//                            opcount = 0;   
-//                        } 
-//                    } else {
-//                        switch (range)
-//                        {
+                        //        readonly String[] opcode0f01c0 = { "???", "vmcall", "vmlaunch", "vmresume", "vmxoff", "???", "???", "???" };
 //                            case 0x00:
 //                                opcode = opcode0f01c0[modrm - 0xc0];
 //                                opcount = 0;
 //                                break;
 
 //                            case 0x01:
+                        //        readonly String[] opcode0f01c8 = { "monitor", "mwait", "???", "???", "???", "???", "???", "???" };
 //                                opcode = opcode0f01c8[modrm - 0xc8];
 //                                opcount = 0;
 //                                if (modrm == 0xc8)
@@ -1819,10 +1840,12 @@ namespace Origami.Asm32
 //                                break;
 
 //                            case 0x03:
+//        readonly String[] opcode0f01d8 = { "vmrun", "vmmcall", "vmload", "vmsave", "stgi", "clgi", "skinit", "invlpga"};
 //                                uint d8ofs = modrm - 0xd8;
 //                                opcode = opcode0f01d8[d8ofs];
 //                                op1 = "eax";
 //                                op2 = "ecx";
+//        readonly int[] opcount0fd8 = { 1, 0, 1, 1, 0, 0, 1, 2 };
 //                                opcount = opcount0fd8[d8ofs];
 //                                break;
 
@@ -1834,6 +1857,7 @@ namespace Origami.Asm32
 //                                break;
 
 //                            case 0x07:
+                        //        readonly String[] opcode0f01f8 = { "swapgs", "rdtscp", "???", "???", "???", "???", "???", "???" };
 //                                opcode = opcode0f01f8[modrm - 0xf8];
 //                                opcount = 0;
 //                                break;
@@ -1844,21 +1868,40 @@ namespace Origami.Asm32
 //                                break;
 //                        }
 
-//                    }
-//                    break;
+                    }
+                    break;
 
-//                case 0x02:
-//                case 0x03:
-//                    modrm = getNextByte();
-//                    op1 = getReg(OPSIZE.DWord, (modrm % 0x40) / 0x08);
-//                    op2 = getModrm(modrm, OPSIZE.DWord);
-//                    opcount = 2;
-//                    break;
-                //        readonly String[] opcode0f0x = { "???", "???", "lar", "lsl", "???", "syscall", "clts", "sysret",
-                //                                         "invd", "wbinvd", "???", "ud2", "???", "nop", "femms", "???"};
+                case 0x02:
+                    modrm = getNextByte();
+                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                    op2 = getModrm(modrm, Operand.OPSIZE.DWord);
+                    instr = new LoadAccessRights(op1, op2);
+                    break;
+
+                case 0x03:
+                    modrm = getNextByte();
+                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                    op2 = getModrm(modrm, Operand.OPSIZE.DWord);
+                    instr = new LoadSegementLimit(op1, op2);
+                    break;
 
                 case 0x05:
                     instr = new SystemCall(SystemCall.MODE.SYSCALL);
+                    break;
+                case 0x06:
+                    instr = new ClearTaskFlag();
+                    break;
+                case 0x07:
+                    instr = new SystemRet(SystemRet.MODE.SYSRET);
+                    break;
+                case 0x08:
+                    instr = new InvalidateCache(InvalidateCache.MODE.INVD);
+                    break;
+                case 0x09:
+                    instr = new InvalidateCache(InvalidateCache.MODE.WBINVD);
+                    break;
+                case 0x0b:
+                    instr = new UndefinedOp(2);
                     break;
             }
                         return instr;

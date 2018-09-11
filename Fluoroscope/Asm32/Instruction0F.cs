@@ -254,88 +254,76 @@ namespace Origami.Asm32
     //LoadDescriptor - LLDT/LGDT/LIDT
     public class LoadDescriptor : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum MODE { LLDT, LGDT, LIDT }
 
-        public LoadDescriptor(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        MODE mode;
+
+        public LoadDescriptor(Operand _op1, MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return ((mode == MODE.LLDT) ? "LLDT" : (mode == MODE.LGDT) ? "LGDT" : "LIDT");
         }
     }
 
     //StoreDescriptor - SLDT/SGDT/SIDT
     public class StoreDescriptor : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum MODE { SLDT, SGDT, SIDT }
 
-        public StoreDescriptor(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        MODE mode;
+
+        public StoreDescriptor(Operand _op1, MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return ((mode == MODE.SLDT) ? "SLDT" : (mode == MODE.SGDT) ? "SGDT" : "SIDT");
         }
     }
 
     //LoadAccessRights - LAR
     public class LoadAccessRights : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public LoadAccessRights(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public LoadAccessRights(Operand _op1, Operand _op2)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "LAR";
         }
     }
 
     //LoadSegementLimit - LSL
     public class LoadSegementLimit : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public LoadSegementLimit(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public LoadSegementLimit(Operand _op1, Operand _op2)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "LSL";
         }
     }
 
@@ -386,88 +374,65 @@ namespace Origami.Asm32
     //LoadSMachinetatusWord - LMSW
     public class LoadSMachinetatusWord : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public LoadSMachinetatusWord(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public LoadSMachinetatusWord(Operand _op1)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "LMSW";
         }
     }
 
     //StoreMachineStatusWord - SMSW
     public class StoreMachineStatusWord : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public StoreMachineStatusWord(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public StoreMachineStatusWord(Operand _op1)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "SMSW";
         }
     }
 
     //LoadTaskRegister - LTR
     public class LoadTaskRegister : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public LoadTaskRegister(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public LoadTaskRegister(Operand _op1)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "LTR";
         }
     }
 
     //StoreaskRegister - STR
-    public class StoreaskRegister : Instruction
+    public class StoreTaskRegister : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public StoreaskRegister(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public StoreTaskRegister(Operand _op1)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "STR";
         }
     }
 
@@ -583,66 +548,52 @@ namespace Origami.Asm32
     //SystemRet - SYSRET/SYSEXIT
     public class SystemRet : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum MODE { SYSRET, SYSEXIT }
 
-        public SystemRet(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        MODE mode;
+
+        public SystemRet(MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
-            op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return ((mode == MODE.SYSRET ? "SYSRET" : "SYSEXIT"));
         }
     }
 
     //ClearTaskFlag - CLTS
     public class ClearTaskFlag : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public ClearTaskFlag(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public ClearTaskFlag()
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
-            op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "CLTS";
         }
     }
 
     //InvalidateCache - INVD/WBINVD
     public class InvalidateCache : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum MODE { INVD, WBINVD }
 
-        public InvalidateCache(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        MODE mode;
+
+        public InvalidateCache(MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
-            op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return ((mode == MODE.INVD ? "INVD" : "WBINVD"));
         }
     }
 
@@ -652,41 +603,37 @@ namespace Origami.Asm32
         bool intop;
         bool pop;
 
-        public InvalidateTLB(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public InvalidateTLB(Operand _op1)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "INVLPG";
         }
     }
 
     //VerifySegment - VERR/VERW
     public class VerifySegment : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum MODE { VERR, VERW }
 
-        public VerifySegment(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        MODE mode;
+
+        public VerifySegment(Operand _op1, MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return ((mode == MODE.VERR ? "VERR" : "VERW"));
         }
     }
 
@@ -715,22 +662,17 @@ namespace Origami.Asm32
     //UndefinedOp - UD0/UD1/UD2
     public class UndefinedOp : Instruction
     {
-        bool intop;
-        bool pop;
+        int level;
 
-        public UndefinedOp(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public UndefinedOp(int _level)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
-            op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            level = _level;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return ("UD" + level.ToString());
         }
     }
 }
