@@ -170,6 +170,10 @@ namespace Origami.Win32
             readCoffHeader(source);
             readOptionalHeader(source);
             loadSections(source);
+            foreach (Section section in sections)
+            {
+                section.imageBase = imageBase;          //sections in exe/dll have an image base
+            }
             //getResourceTable(source);
         }
 

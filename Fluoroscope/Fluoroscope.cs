@@ -169,6 +169,7 @@ namespace Fluoroscope
             infoWin.Show(fwindow);
         }
 
+        const int MAXINSTRLEN = 20;
         const int BYTESFIELDWIDTH = 6;              //in bytes = each byte takes up 3 spaces
         const int OPCODEFIELDWIDTH = 12;            //in actual spaces
 
@@ -188,9 +189,9 @@ namespace Fluoroscope
                 uint instrlen = 0;
                 List<byte> instrBytes;
 
-                uint codeaddr = section.memloc;         //starting pos of code in mem, used for instr addrs
+                uint codeaddr = section.imageBase + section.memloc;         //starting pos of code in mem, used for instr addrs
 
-                while (srcpos < (section.data.Length - disasm.MAXINSTRLEN))
+                while (srcpos < (section.data.Length - MAXINSTRLEN))
                 {
                     instr = disasm.getInstr(codeaddr);          //disasm bytes at cur source pos into next instruction
                     instrBytes = instr.getBytes();              //the instruction's bytes
