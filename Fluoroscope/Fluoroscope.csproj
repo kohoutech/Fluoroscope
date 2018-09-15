@@ -53,7 +53,10 @@
     <Compile Include="Asm32\Instruction87.cs" />
     <Compile Include="Asm32\Instruction.cs" />
     <Compile Include="Asm32\InstructionMMX.cs" />
+    <Compile Include="Asm32\InstructionSSE.cs" />
     <Compile Include="Asm32\Operand.cs" />
+    <Compile Include="Asm32\Register.cs" />
+    <Compile Include="Asm32\Symbol.cs" />
     <Compile Include="UI\InfoWindow.cs">
       <SubType>Form</SubType>
     </Compile>

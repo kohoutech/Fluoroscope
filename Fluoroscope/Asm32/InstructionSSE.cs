@@ -26,6 +26,121 @@ namespace Origami.Asm32
 {
     class InstructionSSE
     {
+
+//- data transfer -------------------------------------------------------------
+
+        //SSEMovePacked - MOVAPS/MOVUPS
+        public class SSEMovePacked : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEMovePacked(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEMoveHigh - MOVHPS/MOVHLPS
+        public class SSEMoveHigh : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEMoveHigh(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEMoveLow - MOVLPS/MOVLHPS
+        public class SSEMoveLow : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEMoveLow(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEExtract - MOVMSKPS
+        public class SSEExtract : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEExtract(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEMoveScalar - MOVSS
+        public class SSEMoveScalar : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEMoveScalar(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+//- arithmetic -------------------------------------------------------------
+
         //SSEAdd - ADDPS/ADDSS
         public class SSEAdd : Instruction
         {
@@ -120,7 +235,7 @@ namespace Origami.Asm32
             bool intop;
             bool pop;
 
-            public MMXEmptyState(Operand _op1, Operand _op2, bool _intop, bool _pop)
+            public SSEReciprocal(Operand _op1, Operand _op2, bool _intop, bool _pop)
                 : base()
             {
                 opcount = (_op2 != null) ? 2 : 1;
@@ -224,6 +339,412 @@ namespace Origami.Asm32
             }
         }
 
+//- comparison ----------------------------------------------------------------
 
+        //SSECompare - CMPPS/CMPSS
+        public class SSECompare : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSECompare(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSECompareSetFlags - COMISS/UCOMISS
+        public class SSECompareSetFlags : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSECompareSetFlags(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+//- logical -------------------------------------------------------------------
+
+        //SSEAnd - ANDPS
+        public class SSEAnd : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEAnd(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSENand - ANDNPS
+        public class SSENand : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSENand(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEOr - ORPS
+        public class SSEOr : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEOr(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEXor - XORPS
+        public class SSEXor : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEXor(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+//- shuffle/unpack ------------------------------------------------------------
+
+        //SSEShuffle - SHUFPS
+        public class SSEShuffle : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEShuffle(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEUnpack - UNPCKHPS/UNPCKLPS
+        public class SSEUnpack : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEUnpack(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+//- conversion ----------------------------------------------------------------
+
+        //SSEConvertFromInt - CVTPI2PS/CVTSI2SS
+        public class SSEConvertFromInt : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEConvertFromInt(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEConvertPackedToInt - CVTPS2PI/CVTTPS2PI
+        public class SSEConvertPackedToInt : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEConvertPackedToInt(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEConvertScalarToInt - CVTSS2SI/CVTTSS2SI
+        public class SSEConvertScalarToInt : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEConvertScalarToInt(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+//- state mgmt ----------------------------------------------------------------
+
+        //SSELoadState - LDMXCSR
+        public class SSELoadState : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSELoadState(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEStoreState - STMXCSR
+        public class SSEStoreState : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEStoreState(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+//- control -------------------------------------------------------------------
+
+        //SSEStoreQuadBytes - MASKMOVQ
+        public class SSEStoreQuadBytes : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEStoreQuadBytes(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEStoreQuad - MOVNTQ
+        public class SSEStoreQuad : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEStoreQuad(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEStorePacked - MOVNTPS
+        public class SSEStorePacked : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEStorePacked(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEPrefetchData - PREFETCHNTA/PREFETCHT0/PREFETCHT1/PREFETCHT2
+        public class SSEPrefetchData : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEPrefetchData(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
+
+        //SSEStoreFence - SFENCE
+        public class SSEStoreFence : Instruction
+        {
+            bool intop;
+            bool pop;
+
+            public SSEStoreFence(Operand _op1, Operand _op2, bool _intop, bool _pop)
+                : base()
+            {
+                opcount = (_op2 != null) ? 2 : 1;
+                op1 = _op1;
+                op2 = _op2;
+                intop = _intop;
+                pop = _pop;
+            }
+
+            public override string ToString()
+            {
+                return "EMMS";
+            }
+        }
     }
 }

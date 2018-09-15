@@ -22,15 +22,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-//http://ref.x86asm.net/coder32.html - opcode table
-//http://wiki.osdev.org/X86-64_Instruction_Encoding - prefix information
+//Intel 64 and IA-32 Architectures Software Developer’s Manual. Volume 2A - 2D
+//specfically Appendix A - Opcode Maps
 
 namespace Origami.Asm32
 {
     class i32Disasm
-    {
-        public readonly int MAXINSTRLEN = 20;
-
+    {        
         public byte[] srcBuf;           //the bytes being disassembled
         public uint srcpos;             //cur pos in source buf
         public uint codeaddr;           //cur addr of instr in mem
@@ -98,7 +96,7 @@ namespace Origami.Asm32
             if (b == 0x0f)
             {
                 uint nb = getNextByte();
-                op0f(nb);
+                instr = op0f(nb);
             }
             else if ((b >= 0x00) && (b <= 0x3f))
             {
@@ -176,23 +174,23 @@ namespace Origami.Asm32
 
 //- prefixing -----------------------------------------------------------------
 
-        //3 prefix groups, successive bytes in the same group will overwrite prev prefix byte
+        //4 prefix groups, successive bytes in the same group will overwrite prev prefix byte
         public void setPrefix(uint b)
         {
-            if (b == 0x26) segprefix = Segment.SEG.ES;    //group1
+            if (b == 0xf0) lockprefix = true;             //group1
+
+            if (b == 0xf2) loopprefix = Instruction.LOOPPREFIX.REPNE;
+            if (b == 0xf3) loopprefix = Instruction.LOOPPREFIX.REP;
+
+            if (b == 0x26) segprefix = Segment.SEG.ES;    //group2
             if (b == 0x2e) segprefix = Segment.SEG.CS;
             if (b == 0x36) segprefix = Segment.SEG.SS;
             if (b == 0x3e) segprefix = Segment.SEG.DS;
             if (b == 0x64) segprefix = Segment.SEG.FS;
-            if (b == 0x65) segprefix = Segment.SEG.GS;
-                
-            if (b == 0xf0) lockprefix = true;             //group2
-
-            if (b == 0xf2) loopprefix = Instruction.LOOPPREFIX.REPNE;            //group3
-            if (b == 0xf3) loopprefix = Instruction.LOOPPREFIX.REP;
+            if (b == 0x65) segprefix = Segment.SEG.GS;                
             
-            if (b == 0x66) operandSizeOverride = true;
-            if (b == 0x67) addressSizeOverride = true;            
+            if (b == 0x66) operandSizeOverride = true;      //group 3
+            if (b == 0x67) addressSizeOverride = true;      //group 4
         }
 
 //- addressing ----------------------------------------------------------------
@@ -339,36 +337,36 @@ namespace Origami.Asm32
                 {
                     case 0x00:
                         modrm = getNextByte();
-                        op1 = getModrm(modrm, Operand.OPSIZE.Byte);
-                        op2 = getReg(Operand.OPSIZE.Byte, (modrm % 0x40) / 0x08);
+                        op1 = getModrm(modrm, Operand.OPSIZE.Byte);                     //Eb
+                        op2 = getReg(Operand.OPSIZE.Byte, (modrm % 0x40) / 0x08);       //Gb
                         break;
 
                     case 0x01:
                         modrm = getNextByte();
-                        op1 = getModrm(modrm, Operand.OPSIZE.DWord);
-                        op2 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                        op1 = getModrm(modrm, Operand.OPSIZE.DWord);                    //Ev
+                        op2 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);      //Gv
                         break;
 
                     case 0x02:
                         modrm = getNextByte();
-                        op1 = getReg(Operand.OPSIZE.Byte, (modrm % 0x40) / 0x08);
-                        op2 = getModrm(modrm, Operand.OPSIZE.Byte);
+                        op1 = getReg(Operand.OPSIZE.Byte, (modrm % 0x40) / 0x08);       //Gb
+                        op2 = getModrm(modrm, Operand.OPSIZE.Byte);                     //Eb
                         break;
 
                     case 0x03:
                         modrm = getNextByte();
-                        op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
-                        op2 = getModrm(modrm, Operand.OPSIZE.DWord);
+                        op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);      //Gv
+                        op2 = getModrm(modrm, Operand.OPSIZE.DWord);                    //Ev
                         break;
 
                     case 0x04:
-                        op1 = getReg(Operand.OPSIZE.Byte, 0);
-                        op2 = getImm(Operand.OPSIZE.Byte);
+                        op1 = getReg(Operand.OPSIZE.Byte, 0);           //AL
+                        op2 = getImm(Operand.OPSIZE.Byte);              //Ib
                         break;
 
                     case 0x05:
-                        op1 = getReg(Operand.OPSIZE.DWord, 0);
-                        op2 = getImm(Operand.OPSIZE.DWord);
+                        op1 = getReg(Operand.OPSIZE.DWord, 0);          //EAX
+                        op2 = getImm(Operand.OPSIZE.DWord);             //Iz
                         break;
                 }
 
@@ -377,16 +375,15 @@ namespace Origami.Asm32
 
             if (blo == 0x06)        //0x06, 0x0e, 0x16, 0x1e
             {
-                op1 = new Segment((Segment.SEG)bhi);
-                instr = new Push(op1);            
-                
+                op1 = Segment.getSeg((int)bhi);
+                instr = new Push(op1);                
             }
 
             if ((blo == 0x07))
             {
                 if (bhi < 0x03) {                                   //0x07, 0x0f, 0x17, 0x1f
-                        op1 = new Segment((Segment.SEG)bhi);
-                        instr  = new Pop(op1);
+                    op1 = Segment.getSeg((int)bhi);
+                    instr  = new Pop(op1);
                 }
                 else if (bhi < 0x06)
                 {
@@ -444,8 +441,8 @@ namespace Origami.Asm32
                     uint mode = (modrm / 0x40) % 0x04;      //62 0c - 62 ff undefined
                     if (mode < 0x03)
                     {
-                        op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
-                        op2 = getModrm(modrm, Operand.OPSIZE.QWord);
+                        op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);      //Gv
+                        op2 = getModrm(modrm, Operand.OPSIZE.QWord);                    //Mz
                         instr = new Bound(op1, op2);
                     }
                     break;
@@ -454,13 +451,13 @@ namespace Origami.Asm32
                     bhi = (b / 0x08) % 0x08;   //--bb b--- (top two bits should = 0)
                     blo = b % 0x08;            //---- -bbb
                     modrm = getNextByte();
-                    op1 = getModrm(modrm, Operand.OPSIZE.Word);
-                    op2 = getReg(Operand.OPSIZE.Word, (modrm % 0x40) / 0x08);
+                    op1 = getModrm(modrm, Operand.OPSIZE.Word);                         //Ew
+                    op2 = getReg(Operand.OPSIZE.Word, (modrm % 0x40) / 0x08);           //Gw
                     instr = new Arpl(op1, op2);
                     break;
 
                 case 0x68:
-                    op1 = getImm(Operand.OPSIZE.DWord);
+                    op1 = getImm(Operand.OPSIZE.DWord);                 //Iz
                     instr = new Push(op1);
                     break;
 
@@ -468,14 +465,14 @@ namespace Origami.Asm32
                     bhi = (b / 0x08) % 0x08;   //--bb b--- (top two bits should = 0)
                     blo = b % 0x08;            //---- -bbb
                     modrm = getNextByte();
-                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
-                    op2 = getModrm(modrm, Operand.OPSIZE.DWord);
-                    op3 = getImm(Operand.OPSIZE.DWord);
+                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);          //Gv
+                    op2 = getModrm(modrm, Operand.OPSIZE.DWord);                        //Ev
+                    op3 = getImm(Operand.OPSIZE.DWord);                                 //Iz
                     instr = new IntMultiply(op1, op2, op3);
                     break;
 
                 case 0x6a:
-                    op1 = getImm(Operand.OPSIZE.SignedByte);
+                    op1 = getImm(Operand.OPSIZE.SignedByte);            //Ib
                     instr = new Push(op1);
                     break;
 
@@ -483,25 +480,25 @@ namespace Origami.Asm32
                     bhi = (b / 0x08) % 0x08;   //--bb b--- (top two bits should = 0)
                     blo = b % 0x08;            //---- -bbb
                     modrm = getNextByte();
-                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
-                    op2 = getModrm(modrm, Operand.OPSIZE.DWord);
-                    op3 = getImm(Operand.OPSIZE.SignedByte);
+                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);          //Gv
+                    op2 = getModrm(modrm, Operand.OPSIZE.DWord);                        //Ev
+                    op3 = getImm(Operand.OPSIZE.SignedByte);                            //Ib
                     instr = new IntMultiply(op1, op2, op3);
                     break;
 
                 case 0x6c:
                 case 0x6d:
                     op1 = new Memory(Register32.EDI, null, 1, null,
-                        (b == 0x6c) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);
-                    op2 = new Register16(REG16.DX);
+                        (b == 0x6c) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.ES);      //Yb or Yz
+                    op2 = Register16.DX;                                                                //DX
                     instr = new InputString(op1, op2, loopprefix);
                     break;
 
                 case 0x6e:
                 case 0x6f:
-                    op1 = new Register16(REG16.DX);
+                    op1 = Register16.DX;                                                                //DX
                     op2 = new Memory(Register32.ESI, null, 1, null,
-                        (b == 0x6c) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);
+                        (b == 0x6c) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, Segment.SEG.DS);      //Xb or Xz
                     instr = new OutputString(op1, op2, loopprefix);
                     break;
 
@@ -512,7 +509,7 @@ namespace Origami.Asm32
         public Instruction op7x(uint b)
         {
             JumpConditional.CONDIT condit = (JumpConditional.CONDIT)(b % 0x10);           
-            op1 = rel8();
+            op1 = rel8();                                                               //Jb
             return new JumpConditional(condit, op1);            
         }
 
@@ -525,27 +522,27 @@ namespace Origami.Asm32
             {
                 case 0x80:
                 case 0x82:                      //0x82 is the same as 0x80?
-                    op1 = getModrm(modrm, Operand.OPSIZE.Byte);
-                    op2 = getImm(Operand.OPSIZE.Byte);
+                    op1 = getModrm(modrm, Operand.OPSIZE.Byte);                 //Eb
+                    op2 = getImm(Operand.OPSIZE.Byte);                          //Ib
                     instr = ArithmeticOps(bhi, op1, op2);
                     break;
 
                 case 0x81:
-                    op1 = getModrm(modrm, Operand.OPSIZE.DWord);
-                    op2 = getImm(Operand.OPSIZE.DWord);
+                    op1 = getModrm(modrm, Operand.OPSIZE.DWord);                //Ev
+                    op2 = getImm(Operand.OPSIZE.DWord);                         //Iz
                     instr = ArithmeticOps(bhi, op1, op2);
                     break;
 
                 case 0x83:
-                    op1 = getModrm(modrm, Operand.OPSIZE.DWord);
-                    op2 = getImm(Operand.OPSIZE.SignedByte);
+                    op1 = getModrm(modrm, Operand.OPSIZE.DWord);                //Ev
+                    op2 = getImm(Operand.OPSIZE.SignedByte);                    //Ib
                     instr = ArithmeticOps(bhi, op1, op2);
                     break;
 
                 case 0x84:
                 case 0x85:
-                    op1 = getModrm(modrm, (b == 0x84) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord);
-                    op2 = getReg((b == 0x84) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, bhi);
+                    op1 = getModrm(modrm, (b == 0x84) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord);        //Eb or Ev
+                    op2 = getReg((b == 0x84) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord, bhi);            //Gb or Gv
                     instr = new Test(op1, op2);
                     break;
 
@@ -575,7 +572,7 @@ namespace Origami.Asm32
                     if ((modrm < 0xc0) && (bhi < 0x06))         //8c 30 - 8c 3f, 8c 70 - 8c 7f, 8c b0 - 8c ff undefined
                     {                                                   
                         op1 = getModrm(modrm, Operand.OPSIZE.Word);
-                        op2 = new Segment((Segment.SEG)bhi);
+                        op2 = Segment.getSeg((int)bhi);
                         instr = new Move(op1, op2);
                     }
                     break;
@@ -592,7 +589,7 @@ namespace Origami.Asm32
                 case 0x8e:
                     if (bhi < 0x06)                 //8e 30 - 8e 3f, 8e 70 - 8e 7f, 8e b0 - 8e bf, 8e f0 - 8e ff undefined
                     {
-                        op1 = new Segment((Segment.SEG)bhi);
+                        op1 = Segment.getSeg((int)bhi);
                         op2 = getModrm(modrm, Operand.OPSIZE.Word);
                         instr = new Move(op1, op2);
                     }
@@ -903,7 +900,7 @@ namespace Origami.Asm32
                     break;
 
                 case 0xd7:
-                    op1 = new Memory(new Register32(REG32.EBX), null, 1, null, Operand.OPSIZE.Byte, Segment.SEG.DS);
+                    op1 = new Memory(Register32.EBX, null, 1, null, Operand.OPSIZE.Byte, Segment.SEG.DS);
                     instr = new XlateString(op1, loopprefix);
                     break;
             }
@@ -1301,13 +1298,13 @@ namespace Origami.Asm32
                     case 0xd8:
                         if ((range == 2) || (range == 3)) 
                         {
-                            op1 = new Stack87((int)rm, false);
+                            op1 = Register87.getReg((int)rm); 
                             op2 = null;
                         }
                         else 
                         {
-                            op1 = new Stack87(0, true);
-                            op2 = new Stack87((int)rm, false);
+                            op1 = Register87.getReg(0);
+                            op2 = Register87.getReg((int)rm); 
                         }
                         instr = Arithmetic87Ops(range, op1, op2, false, false, true);
                         break;
@@ -1319,7 +1316,7 @@ namespace Origami.Asm32
                         }
                         else if (modrm < 0xe0)
                         {
-                            op1 = new Stack87((int)rm, false);
+                            op1 = Register87.getReg((int)rm);
                             switch (range)
                             {
                                 case 0x00:
@@ -1342,8 +1339,8 @@ namespace Origami.Asm32
                     case 0xda:
                         if (modrm < 0xe0)
                         {
-                            op1 = new Stack87(0, true);
-                            op2 = new Stack87((int)rm, false);
+                            op1 = Register87.getReg(0);
+                            op2 = Register87.getReg((int)rm);
                             switch (range)
                             {
                                 case 0x00:
@@ -1391,8 +1388,8 @@ namespace Origami.Asm32
                         }
                         else
                         {
-                            op1 = new Stack87(0, true);
-                            op2 = new Stack87((int)rm, false);
+                            op1 = Register87.getReg(0);
+                            op2 = Register87.getReg((int)rm);
                             switch (range)
                             {
                                 case 0x00:
@@ -1420,21 +1417,21 @@ namespace Origami.Asm32
                     case 0xdc:
                         if ((range == 2) || (range == 3))
                         {
-                            op1 = new Stack87((int)rm, false);
+                            op1 = Register87.getReg((int)rm);
                             op2 = null;
                         }
                         else
                         {
-                            op1 = new Stack87((int)rm, false);
-                            op2 = new Stack87(0, true);
+                            op1 = Register87.getReg((int)rm);
+                            op2 = Register87.getReg(0);
                         }
                         instr = Arithmetic87Ops(range, op1, op2, false, false, false);
                         break;
 
                     case 0xdd:
                         if (modrm < 0xf0)
-                        {                                                       
-                            op1 = new Stack87((int)rm, false);
+                        {
+                            op1 = Register87.getReg((int)rm);
                             switch (range)
                             {
                                 case 0x00:
@@ -1464,13 +1461,13 @@ namespace Origami.Asm32
                         {
                             if (range == 2)
                             {
-                                op1 = new Stack87((int)rm, false);
+                                op1 = Register87.getReg((int)rm);
                                 op2 = null;
                             }
                             else
                             {
-                                op1 = new Stack87((int)rm, false);
-                                op2 = new Stack87(0, true);
+                                op1 = Register87.getReg((int)rm);
+                                op2 = Register87.getReg(0);
                             }
                             instr = Arithmetic87Ops(range, op1, op2, false, true, false);
                         }
@@ -1485,13 +1482,13 @@ namespace Origami.Asm32
                         {
                             if (range < 5)
                             {
-                                op1 = new Stack87((int)rm, false);
+                                op1 = Register87.getReg((int)rm);
                                 op2 = null;
                             }
                             else
                             {
-                                op1 = new Stack87(0, true);
-                                op2 = new Stack87((int)rm, false);
+                                op1 = Register87.getReg(0);
+                                op2 = Register87.getReg((int)rm);
                             }
 
                             switch (range)
@@ -1740,16 +1737,13 @@ namespace Origami.Asm32
         public Instruction  op0f0x(uint b)
         {
             Instruction instr = null;
-//            opcode = opcode0f0x[(b % 0x10)];
-//            opcount = 0;
-//            uint bhi = (b / 0x08) % 0x08;   //--bb b--- 
-//            uint blo = b % 0x08;            //---- -bbb
             uint modrm = 0;
             uint mode = 0;
             uint range = 0;
             Operand.OPSIZE size;
             switch (b)
             {
+                //group 6 instructions
                 case 0x00:
                     modrm = getNextByte();
                     mode = (modrm / 0x40) % 0x04;                        
@@ -1778,6 +1772,7 @@ namespace Origami.Asm32
                     }
                     break;
 
+                //group 7 instructions
                 case 0x01:
                     modrm = getNextByte();
                     mode = (modrm / 0x40) % 0x04;                        
@@ -1812,62 +1807,7 @@ namespace Origami.Asm32
 
                     } else {
 
-                        //                        switch (range)
-//                        {
-                        //        readonly String[] opcode0f01c0 = { "???", "vmcall", "vmlaunch", "vmresume", "vmxoff", "???", "???", "???" };
-//                            case 0x00:
-//                                opcode = opcode0f01c0[modrm - 0xc0];
-//                                opcount = 0;
-//                                break;
-
-//                            case 0x01:
-                        //        readonly String[] opcode0f01c8 = { "monitor", "mwait", "???", "???", "???", "???", "???", "???" };
-//                                opcode = opcode0f01c8[modrm - 0xc8];
-//                                opcount = 0;
-//                                if (modrm == 0xc8)
-//                                {
-//                                    op1 = "eax";
-//                                    op2 = "ecx";
-//                                    op3 = "edx";
-//                                    opcount = 3;
-//                                }
-//                                if (modrm == 0xc9)
-//                                {
-//                                    op1 = "eax";
-//                                    op2 = "ecx";
-//                                    opcount = 2;
-//                                }
-//                                break;
-
-//                            case 0x03:
-//        readonly String[] opcode0f01d8 = { "vmrun", "vmmcall", "vmload", "vmsave", "stgi", "clgi", "skinit", "invlpga"};
-//                                uint d8ofs = modrm - 0xd8;
-//                                opcode = opcode0f01d8[d8ofs];
-//                                op1 = "eax";
-//                                op2 = "ecx";
-//        readonly int[] opcount0fd8 = { 1, 0, 1, 1, 0, 0, 1, 2 };
-//                                opcount = opcount0fd8[d8ofs];
-//                                break;
-
-//                            case 0x04:
-//                            case 0x06:
-//                                opcode = opcode0f01[range];
-//                                op1 = getModrm(modrm, (range == 4 ? OPSIZE.DWord : OPSIZE.Word));
-//                                opcount = 1;
-//                                break;
-
-//                            case 0x07:
-                        //        readonly String[] opcode0f01f8 = { "swapgs", "rdtscp", "???", "???", "???", "???", "???", "???" };
-//                                opcode = opcode0f01f8[modrm - 0xf8];
-//                                opcount = 0;
-//                                break;
-
-//                            default:
-//                                opcode = "???";
-//                                opcount = 0;
-//                                break;
-//                        }
-
+                        //group 7 0xc1 - 0xF9 instructions not implemented yet
                     }
                     break;
 
@@ -1888,18 +1828,23 @@ namespace Origami.Asm32
                 case 0x05:
                     instr = new SystemCall(SystemCall.MODE.SYSCALL);
                     break;
+
                 case 0x06:
                     instr = new ClearTaskFlag();
                     break;
+
                 case 0x07:
                     instr = new SystemRet(SystemRet.MODE.SYSRET);
                     break;
+
                 case 0x08:
                     instr = new InvalidateCache(InvalidateCache.MODE.INVD);
                     break;
+
                 case 0x09:
                     instr = new InvalidateCache(InvalidateCache.MODE.WBINVD);
                     break;
+
                 case 0x0b:
                     instr = new UndefinedOp(2);
                     break;
@@ -1910,83 +1855,83 @@ namespace Origami.Asm32
 
 //        readonly String[] opcode0f1x = { "movups", "movups", "movlps", "movlps", "unpcklps", "unpckhps", "movhps", "movhps",
 //                                         "???", "???", "???", "???", "???", "???", "???", "???"};
-//        readonly String[] opcode0f18 = { "prefetchnta", "prefetcht0", "prefetcht1", "prefetcht2", "???", "???", "???", "???" };
 
-        
-        public Instruction  op0f1x(uint b)
+
+        public Instruction op0f1x(uint b)
         {
             Instruction instr = null;
-//            opcode = opcode0f1x[(b % 0x10)];
-//            opcount = 0;
-//            uint bhi = (b / 0x08) % 0x08;   //--bb b--- (top two bits should = 0)
-//            uint blo = b % 0x08;            //---- -bbb
-//            uint modrm = 0;
-//            uint mode = 0;
-//            switch (b)
-//            {
-//                case 0x10:
-//                case 0x14:
-//                case 0x15:                
-//                    modrm = getNextByte();
-//                    op1 = regxmm[(modrm % 0x40) / 0x08];
-//                    op2 = getModrm(modrm, OPSIZE.XMM);
-//                    opcount = 2;
-//                    break;
+            //            opcode = opcode0f1x[(b % 0x10)];
+            //            opcount = 0;
+            //            uint bhi = (b / 0x08) % 0x08;   //--bb b--- (top two bits should = 0)
+            //            uint blo = b % 0x08;            //---- -bbb
+                        uint modrm = 0;
+                        uint mode = 0;
+            switch (b)
+            {
+                                case 0x10:
+                                case 0x14:
+                                case 0x15:                
+                                    modrm = getNextByte();
+                                    op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                                    op2 = getModrm(modrm, Operand.OPSIZE.XMM);
+                                    break;
 
-//                case 0x11:
-//                    modrm = getNextByte();
-//                    op1 = getModrm(modrm, OPSIZE.XMM);
-//                    op2 = regxmm[(modrm % 0x40) / 0x08];
-//                    opcount = 2;
-//                    break;
+                                case 0x11:
+                                    modrm = getNextByte();
+                                    op1 = getModrm(modrm, Operand.OPSIZE.XMM);
+                                    op2 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                //                    opcount = 2;
+                                    break;
 
-//                case 0x12:
-//                case 0x16:
-//                    modrm = getNextByte();
-//                    mode = (modrm / 0x40) % 0x04;
-//                    if (mode == 3) opcode = (b == 0x02) ? "movhlps" : "movlhps";
-//                    op1 = regxmm[(modrm % 0x40) / 0x08];
-//                    OPSIZE arg2 = (mode < 3) ? OPSIZE.QWord : OPSIZE.XMM;
-//                    op2 = getModrm(modrm, arg2);
-//                    opcount = 2;
-//                    break;
+                                case 0x12:
+                                case 0x16:
+                                    modrm = getNextByte();
+                                    //mode = (modrm / 0x40) % 0x04;
+                                    //if (mode == 3) opcode = (b == 0x02) ? "movhlps" : "movlhps";
+                                    //op1 = regxmm[(modrm % 0x40) / 0x08];
+                                    //OPSIZE arg2 = (mode < 3) ? OPSIZE.QWord : OPSIZE.XMM;
+                                    //op2 = getModrm(modrm, arg2);
+                                    //opcount = 2;
+                                    break;
 
-//                case 0x13:
-//                case 0x17:
-//                    modrm = getNextByte();
-//                    mode = (modrm / 0x40) % 0x04;
-//                    if (mode < 3)
-//                    {
-//                        op1 = getModrm(modrm, OPSIZE.QWord);
-//                        op2 = regxmm[(modrm % 0x40) / 0x08];
-//                        opcount = 2;
-//                    }
-//                    else
-//                    {
-//                        opcode = "???";
-//                        opcount = 0;
-//                    }
-//                    break;
+                //                case 0x13:
+                //                case 0x17:
+                //                    modrm = getNextByte();
+                //                    mode = (modrm / 0x40) % 0x04;
+                //                    if (mode < 3)
+                //                    {
+                //                        op1 = getModrm(modrm, OPSIZE.QWord);
+                //                        op2 = regxmm[(modrm % 0x40) / 0x08];
+                //                        opcount = 2;
+                //                    }
+                //                    else
+                //                    {
+                //                        opcode = "???";
+                //                        opcount = 0;
+                //                    }
+                //                    break;
 
-//                case 0x18:
-//                    modrm = getNextByte();
-//                    mode = (modrm / 0x40) % 0x04;
-//                    uint range = (modrm % 0x40) / 0x08;
-//                    if ((mode < 3) && (range <= 3))
-//                    {
-//                        opcode = opcode0f18[range];
-//                        op1 = getModrm(modrm, OPSIZE.None);
-//                        opcount = 1;
-//                    }
-//                    else
-//                    {
-//                        opcode = "???";
-//                        opcount = 0;
-//                    }
-//                    break;
+                //                case 0x18:
+                //                    modrm = getNextByte();
+                //                    mode = (modrm / 0x40) % 0x04;
+                //                    uint range = (modrm % 0x40) / 0x08;
+                //                    if ((mode < 3) && (range <= 3))
+                //                    {
+                //        readonly String[] opcode0f18 = { "prefetchnta", "prefetcht0", "prefetcht1", "prefetcht2", "???", "???", "???", "???" };
 
-//            }
-                        return instr;
+                //                        opcode = opcode0f18[range];
+                //                        op1 = getModrm(modrm, OPSIZE.None);
+                //                        opcount = 1;
+                //                    }
+                //                    else
+                //                    {
+                //                        opcode = "???";
+                //                        opcount = 0;
+                //                    }
+                //                    break;
+
+            }
+            return instr;
         }
 
 //        readonly String[] opcode0f2x = { "???", "???", "???", "???", "???", "???", "???", "???",
@@ -2283,24 +2228,24 @@ namespace Origami.Asm32
         }
 
 //- registers -----------------------------------------------------------------
-       
-        public Register getReg(Operand.OPSIZE size, uint reg)
+
+        public Register getReg(Operand.OPSIZE rtype, uint reg)
         {
-            if (operandSizeOverride && (size == Operand.OPSIZE.DWord)) size = Operand.OPSIZE.Word;
-            if (useModrm32 && (size == Operand.OPSIZE.Word)) size = Operand.OPSIZE.DWord;
+            if (operandSizeOverride && (rtype == Operand.OPSIZE.DWord)) rtype = Operand.OPSIZE.Word;
+            if (useModrm32 && (rtype == Operand.OPSIZE.Word)) rtype = Operand.OPSIZE.DWord;
 
             Register result = null;
-            switch (size)
+            switch (rtype)
             {
                 case Operand.OPSIZE.Byte:
-                    result = new Register8((REG8)reg);
+                    result = Register8.getReg((int)reg);
                     break;
                 case Operand.OPSIZE.Word:
-                    result = new Register16((REG16)reg);
+                    result = Register16.getReg((int)reg);
                     break;
                 case Operand.OPSIZE.DWord:
                 case Operand.OPSIZE.FWord:
-                    result = new Register32((REG32)reg);
+                    result = Register32.getReg((int)reg);
                     break;
             }
 
