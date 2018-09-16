@@ -296,6 +296,92 @@ namespace Origami.Asm32
         }
     }
 
+//- control registers ------------------------------------------------------------
+
+    public class RegisterCR : Register
+    {
+        static List<RegisterCR> regs;
+
+        public enum REGCR { CR0, CR1, CR2, CR3, CR4, CR5, CR6, CR7 };
+        public REGCR regcr;
+
+        public static RegisterCR CR0 = new RegisterCR(REGCR.CR0, "CR0");
+        public static RegisterCR CR1 = new RegisterCR(REGCR.CR1, "CR1");
+        public static RegisterCR CR2 = new RegisterCR(REGCR.CR2, "CR2");
+        public static RegisterCR CR3 = new RegisterCR(REGCR.CR3, "CR3");
+        public static RegisterCR CR4 = new RegisterCR(REGCR.CR4, "CR4");
+        public static RegisterCR CR5 = new RegisterCR(REGCR.CR5, "CR5");
+        public static RegisterCR CR6 = new RegisterCR(REGCR.CR6, "CR6");
+        public static RegisterCR CR7 = new RegisterCR(REGCR.CR7, "CR7");
+
+        static RegisterCR()
+        {
+            regs = new List<RegisterCR>();
+            regs.Add(CR0);
+            regs.Add(CR1);
+            regs.Add(CR2);
+            regs.Add(CR3);
+            regs.Add(CR4);
+            regs.Add(CR5);
+            regs.Add(CR6);
+            regs.Add(CR7);
+        }
+
+        static public RegisterCR getReg(int i)
+        {
+            return regs[i];
+        }
+
+        public RegisterCR(REGCR rcr, String name)
+            : base(name)
+        {
+            regcr = rcr;
+        }
+    }
+
+//- debug registers ------------------------------------------------------------
+
+    public class RegisterDR : Register
+    {
+        static List<RegisterDR> regs;
+
+        public enum REGDR { DR0, DR1, DR2, DR3, DR4, DR5, DR6, DR7};
+        public REGDR regdr;
+
+        public static RegisterDR DR0 = new RegisterDR(REGDR.DR0, "DR0");
+        public static RegisterDR DR1 = new RegisterDR(REGDR.DR1, "DR1");
+        public static RegisterDR DR2 = new RegisterDR(REGDR.DR2, "DR2");
+        public static RegisterDR DR3 = new RegisterDR(REGDR.DR3, "DR3");
+        public static RegisterDR DR4 = new RegisterDR(REGDR.DR4, "DR4");
+        public static RegisterDR DR5 = new RegisterDR(REGDR.DR5, "DR5");
+        public static RegisterDR DR6 = new RegisterDR(REGDR.DR6, "DR6");
+        public static RegisterDR DR7 = new RegisterDR(REGDR.DR7, "DR7");
+
+        static RegisterDR()
+        {
+            regs = new List<RegisterDR>();
+            regs.Add(DR0);
+            regs.Add(DR1);
+            regs.Add(DR2);
+            regs.Add(DR3);
+            regs.Add(DR4);
+            regs.Add(DR5);
+            regs.Add(DR6);
+            regs.Add(DR7);
+        }
+
+        static public RegisterDR getReg(int i)
+        {
+            return regs[i];
+        }
+
+        public RegisterDR(REGDR rdr, String name)
+            : base(name)
+        {
+            regdr = rdr;
+        }
+    }
+
 //- seqgment ------------------------------------------------------------------
 
     public class Segment : Operand
