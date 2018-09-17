@@ -26,7 +26,7 @@ namespace Origami.Asm32
 {
     public class Operand
     {
-       public enum OPSIZE { Byte, SignedByte, Word, DWord, QWord, FWord, TByte, MM, XMM, None };
+       public enum OPSIZE { Byte, SignedByte, Word, DWord, QWord, FWord, TByte, MM, XMM, CR, DR, None };
     }
 
 //- immediate ----------------------------------------------------------------
@@ -143,16 +143,34 @@ namespace Origami.Asm32
         {
            //if (operandSizeOverride && (size == Operand.OPSIZE.DWord)) size = Operand.OPSIZE.Word;
 
-            String result = "???";
-            if (size == Operand.OPSIZE.Byte) result = "byte ptr ";
-            if (size == Operand.OPSIZE.Word) result = "word ptr ";
-            if (size == Operand.OPSIZE.DWord) result = "dword ptr ";
-            if (size == Operand.OPSIZE.QWord) result = "qword ptr ";
-            if (size == Operand.OPSIZE.FWord) result = "fword ptr ";
-            if (size == Operand.OPSIZE.TByte) result = "tbyte ptr ";
-            //if (size == Operand.OPSIZE.MM) result = "mmword ptr ";
-            if (size == Operand.OPSIZE.XMM) result = "xmmword ptr ";
-            if (size == Operand.OPSIZE.None) result = "";
+            String result = "";
+            switch (size)
+            {
+                case Operand.OPSIZE.Byte:
+                    result = "byte ptr ";
+                    break;
+                case Operand.OPSIZE.Word:
+                    result = "word ptr ";
+                    break;
+                case Operand.OPSIZE.DWord:
+                    result = "dword ptr ";
+                    break;
+                case Operand.OPSIZE.QWord:
+                    result = "qword ptr ";
+                    break;
+                case Operand.OPSIZE.FWord:
+                    result = "fword ptr ";
+                    break;
+                case Operand.OPSIZE.TByte:
+                    result = "tbyte ptr ";
+                    break;
+                case Operand.OPSIZE.MM:
+                    result = "mmword ptr ";
+                    break;
+                case Operand.OPSIZE.XMM:
+                    result = "xmmword ptr ";
+                    break;
+            }
             return result;
         }
 
