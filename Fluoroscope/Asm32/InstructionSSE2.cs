@@ -619,34 +619,28 @@ namespace Origami.Asm32
     //SSE2LoadFence - LFENCE
     public class SSE2LoadFence : Instruction
     {
-        public SSE2LoadFence(Operand _op1, Operand _op2)
+        public SSE2LoadFence()
             : base()
         {
-            opcount = 2;
-            op1 = _op1;
-            op2 = _op2;
         }
 
         public override string ToString()
         {
-            return "CMP";
+            return "LFENCE";
         }
     }
 
     //SSE2MemoryFence - MFENCE
     public class SSE2MemoryFence : Instruction
     {
-        public SSE2MemoryFence(Operand _op1, Operand _op2)
+        public SSE2MemoryFence()
             : base()
         {
-            opcount = 2;
-            op1 = _op1;
-            op2 = _op2;
         }
 
         public override string ToString()
         {
-            return "CMP";
+            return "MFENCE";
         }
     }
 
@@ -714,7 +708,7 @@ namespace Origami.Asm32
 
         public override string ToString()
         {
-            return "CMP";
+            return "MOVNTI";
         }
     }
 }

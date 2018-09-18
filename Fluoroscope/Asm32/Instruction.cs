@@ -28,13 +28,14 @@ namespace Origami.Asm32
     {
         public enum LOOPPREFIX { REP, REPNE, None };
 
+        public bool lockprefix;
+
         public Operand op1;
         public Operand op2;
         public Operand op3;
-
-        public bool lockprefix;
-
         public int opcount;
+
+        public uint addr;
         public List<byte> bytes;
 
         public Instruction () 
@@ -47,8 +48,16 @@ namespace Origami.Asm32
             bytes = null;
         }
 
+        public virtual void generateBytes()
+        {
+        }
+
         public List<byte> getBytes()
         {
+            if (bytes == null)
+            {
+                generateBytes();
+            }
             return bytes;
         }
     }
@@ -116,6 +125,14 @@ namespace Origami.Asm32
         {
             opcount = 1;
             op1 = _op1;
+        }
+
+        public IntMultiply(Operand _op1, Operand _op2)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
         }
 
         public IntMultiply(Operand _op1, Operand _op2, Operand _op3)
@@ -542,7 +559,7 @@ namespace Origami.Asm32
 
         public CONDIT condit;
 
-        public JumpConditional(CONDIT _condit, Operand _op1)
+        public JumpConditional(Operand _op1, CONDIT _condit)
             : base()
         {
             condit = _condit;

@@ -30,110 +30,106 @@ namespace Origami.Asm32
     //BitScan - BSF/BSR
     public class BitScan : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum MODE { BSF, BSR }
+        MODE mode;
 
-        public BitScan(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public BitScan(Operand _op1, Operand _op2, MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return (mode == MODE.BSF) ? "BSF" : "BSR";
         }
     }
 
     //BitTest - BT/BTC/BTR/BTS
     public class BitTest : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum MODE { BT, BTS, BTR, BTC }
+        MODE mode;
 
-        public BitTest(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public BitTest(Operand _op1, Operand _op2, MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return (mode == MODE.BT) ? "BT" : (mode == MODE.BTC) ? "BTC" : (mode == MODE.BTR) ? "BTR" : "BTS";
         }
     }
 
     //ByteSwap - BSWAP
     public class ByteSwap : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public ByteSwap(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public ByteSwap(Operand _op1)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "BSWAP";
         }
     }
 
     //SetByte - SET#
     public class SetByte : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum CONDIT { SETO, SETNO, SETB, SETAE, SETE, SETNE, SETBE, SETA, 
+            SETS, SETNS, SETP, SETNP, SETL, SETGE, SETLE, SETG};
 
-        public SetByte(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public CONDIT condit;
+
+        public SetByte(Operand _op1, CONDIT _condit)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            condit = _condit;
         }
+
+        String[] condits = { "SETO", "SETNO", "SETB", "SETAE", "SETE", "SETNE", "SETBE", "SETA", 
+                           "SETS", "SETNS", "SETP", "SETNP", "SETL", "SETGE", "SETLE", "SETG" };
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return condits[(int)condit];
         }
     }
 
     //DoublePrecShift - SHLD/SHRD
     public class DoublePrecShift : Instruction
     {
-        bool intop;
-        bool pop;
 
-        public DoublePrecShift(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public enum MODE { LEFT, RIGHT }
+        MODE mode;
+
+        public DoublePrecShift(Operand _op1, Operand _op2, Operand _op3, MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 3;
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            op3 = _op3;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return (mode == MODE.LEFT) ? "SHLD" : "SHRD";
         }
     }
 
@@ -142,88 +138,84 @@ namespace Origami.Asm32
     //ConditionalMove - CMOV#
     public class ConditionalMove : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum CONDIT { CMOVO, CMOVNO, CMOVB, CMOVAE, CMOVE, CMOVNE, CMOVBE, CMOVA, 
+                             CMOVS, CMOVNS, CMOVP, CMOVNP, CMOVL, CMOVGE, CMOVLE, CMOVG };
 
-        public ConditionalMove(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public CONDIT condit;
+
+        public ConditionalMove(Operand _op1, Operand _op2, CONDIT _condit)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            condit = _condit;
         }
+
+        String[] condits = { "CMOVO", "CMOVNO", "CMOVB", "CMOVAE", "CMOVE", "CMOVNE", "CMOVBE", "CMOVA", 
+                           "CMOVS", "CMOVNS", "CMOVP", "CMOVNP", "CMOVL", "CMOVGE", "CMOVLE", "CMOVG" };
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return condits[(int)condit];
         }
     }
 
     //MoveExtend - MOVSX/MOVZX
     public class MoveExtend : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum MODE { SIGN, ZERO }
+        MODE mode;
 
-        public MoveExtend(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public MoveExtend(Operand _op1, Operand _op2, MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return (mode == MODE.SIGN) ? "MOVSX" : "MOVZX";
         }
     }
 
     //CompareExchange - CMPXCHG/CMPXCHG8B
     public class CompareExchange : Instruction
     {
-        bool intop;
-        bool pop;
+        bool wide;
 
-        public CompareExchange(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public CompareExchange(Operand _op1, Operand _op2, bool _wide)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = (_op2 != null) ? 2 : 1; 
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            wide = _wide;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return wide ? "CMPXCHG8B" : "CMPXCHG";
         }
     }
 
     //ExchangeAdd - XADD
     public class ExchangeAdd : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public ExchangeAdd(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public ExchangeAdd(Operand _op1, Operand _op2)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "XADD";
         }
     }
 
@@ -232,22 +224,21 @@ namespace Origami.Asm32
     //LoadFarPointer - LFS/LGS/LSS
     public class LoadFarPointer : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum SEG {SS, FS, GS}
+        SEG seg;
 
-        public LoadFarPointer(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public LoadFarPointer(Operand _op1, Operand _op2, SEG _seg)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 2;
             op1 = _op1;
             op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            seg = _seg;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return (seg == SEG.FS) ? "LFS" : (seg == SEG.GS) ? "LGS" : "LSS";
         }
     }
 
@@ -330,44 +321,32 @@ namespace Origami.Asm32
     //StoreMMXState - FXSAVE
     public class StoreMMXState : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public StoreMMXState(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public StoreMMXState(Operand _op1)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "FXSAVE";
         }
     }
 
     //RestoreMMXState - FXRSTOR
     public class RestoreMMXState : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public RestoreMMXState(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public RestoreMMXState(Operand _op1)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "FXRSTOR";
         }
     }
 
@@ -439,66 +418,52 @@ namespace Origami.Asm32
     //ReadModelSpecReg - RDMSR
     public class ReadModelSpecReg : Instruction
     {
-        bool intop;
-        bool pop;
 
-        public ReadModelSpecReg(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public ReadModelSpecReg()
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
-            op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            opcount = 0;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "RDMSR";
         }
     }
 
     //WriteModelSpecReg - WRMSR
     public class WriteModelSpecReg : Instruction
     {
-        bool intop;
-        bool pop;
 
-        public WriteModelSpecReg(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public WriteModelSpecReg()
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
-            op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            opcount = 0;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "WRMSR";
         }
     }
 
     //ReadCounters - RDPMC/RDTSC
     public class ReadCounters : Instruction
     {
-        bool intop;
-        bool pop;
+        public enum MODE { PERFORMANCE, TIMESTAMP };
 
-        public ReadCounters(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        MODE mode;
+
+        public ReadCounters(MODE _mode)
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
-            op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
+            opcount = 0;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return (mode == MODE.PERFORMANCE) ? "RDPMC" : "RDTSC";
         }
     }
 
@@ -507,22 +472,14 @@ namespace Origami.Asm32
     //ResumeFromSysMgt - RSM
     public class ResumeFromSysMgt : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public ResumeFromSysMgt(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public ResumeFromSysMgt()
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
-            op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "RSM";
         }
     }
 
@@ -640,22 +597,33 @@ namespace Origami.Asm32
     //CpuId - CPUID
     public class CpuId : Instruction
     {
-        bool intop;
-        bool pop;
-
-        public CpuId(Operand _op1, Operand _op2, bool _intop, bool _pop)
+        public CpuId()
             : base()
         {
-            opcount = (_op2 != null) ? 2 : 1;
-            op1 = _op1;
-            op2 = _op2;
-            intop = _intop;
-            pop = _pop;
         }
 
         public override string ToString()
         {
-            return (intop ? "FIADD" : (pop) ? "FADDP" : "FADD");
+            return "CPUID";
+        }
+    }
+
+    //CacheFlush - CLFLUSH/CLFLUSHOPT
+    public class CacheFlush : Instruction
+    {
+        bool optimized;
+
+        public CacheFlush(Operand _op1, bool _optimized)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            optimized = _optimized;
+        }
+
+        public override string ToString()
+        {
+            return optimized ? "CLFLUSHOPT" : "CLFLUSH";
         }
     }
 

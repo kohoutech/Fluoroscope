@@ -510,7 +510,7 @@ namespace Origami.Asm32
         {
             JumpConditional.CONDIT condit = (JumpConditional.CONDIT)(b % 0x10);           
             op1 = rel8();                                                               //Jb
-            return new JumpConditional(condit, op1);            
+            return new JumpConditional(op1, condit);
         }
 
         public Instruction op8x(uint b)
@@ -1681,23 +1681,23 @@ namespace Origami.Asm32
             }
             else if ((b >= 0x30) && (b <= 0x3f))
             {
-                instr = op0f3x(b);                      //not implemented yet
+                instr = op0f3x(b);
             }
             else if ((b >= 0x40) && (b <= 0x4f))
             {
-                instr = op0f4x(b);                      //not implemented yet
+                instr = op0f4x(b);
             }
             else if ((b >= 0x50) && (b <= 0x5f))
             {
-                instr = op0f5x(b);                      //not implemented yet
+                instr = op0f5x(b);
             }
             else if ((b >= 0x60) && (b <= 0x6f))
             {
-                instr = op0f6x(b);                      //not implemented yet
+                instr = op0f6x(b);
             }
             else if ((b >= 0x70) && (b <= 0x7f))
             {
-                instr = op0f7x(b);                      //not implemented yet
+                instr = op0f7x(b);
             }
             else if ((b >= 0x80) && (b <= 0x8f))
             {
@@ -1717,19 +1717,19 @@ namespace Origami.Asm32
             }
             else if ((b >= 0xc0) && (b <= 0xcf))
             {
-                instr = op0fcx(b);                      //not implemented yet
+                instr = op0fcx(b);
             }
             else if ((b >= 0xd0) && (b <= 0xdf))
             {
-                instr = op0fdx(b);                      //not implemented yet
+                instr = op0fdx(b);
             }
             else if ((b >= 0xe0) && (b <= 0xef))
             {
-                instr = op0fex(b);                      //not implemented yet
+                instr = op0fex(b);
             }
             else if ((b >= 0xf0) && (b <= 0xff))
             {
-                instr = op0ffx(b);                      //not implemented yet
+                instr = op0ffx(b);
             }
             return instr;
         }
@@ -1850,380 +1850,789 @@ namespace Origami.Asm32
                     break;
             }
                         return instr;
-
         }
-
-//        readonly String[] opcode0f1x = { "movups", "movups", "movlps", "movlps", "unpcklps", "unpckhps", "movhps", "movhps",
-//                                         "???", "???", "???", "???", "???", "???", "???", "???"};
-
 
         public Instruction op0f1x(uint b)
         {
             Instruction instr = null;
-            //            opcode = opcode0f1x[(b % 0x10)];
-            //            opcount = 0;
-            //            uint bhi = (b / 0x08) % 0x08;   //--bb b--- (top two bits should = 0)
-            //            uint blo = b % 0x08;            //---- -bbb
-                        uint modrm = 0;
-                        uint mode = 0;
+            uint modrm = 0;
+            uint mode = 0;
             switch (b)
             {
-                                case 0x10:
-                                case 0x14:
-                                case 0x15:                
-                                    modrm = getNextByte();
-                                    op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
-                                    op2 = getModrm(modrm, Operand.OPSIZE.XMM);
-                                    break;
+                case 0x10:
+                    modrm = getNextByte();
+                    op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = getModrm(modrm, Operand.OPSIZE.XMM);
+                    instr = new SSEMovePacked(op1, op2, false);
+                    break;
 
-                                case 0x11:
-                                    modrm = getNextByte();
-                                    op1 = getModrm(modrm, Operand.OPSIZE.XMM);
-                                    op2 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
-                //                    opcount = 2;
-                                    break;
+                case 0x11:
+                    modrm = getNextByte();
+                    op1 = getModrm(modrm, Operand.OPSIZE.XMM);
+                    op2 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                    instr = new SSEMovePacked(op1, op2, false);
+                    break;
 
-                                case 0x12:
-                                case 0x16:
-                                    modrm = getNextByte();
-                                    //mode = (modrm / 0x40) % 0x04;
-                                    //if (mode == 3) opcode = (b == 0x02) ? "movhlps" : "movlhps";
-                                    //op1 = regxmm[(modrm % 0x40) / 0x08];
-                                    //OPSIZE arg2 = (mode < 3) ? OPSIZE.QWord : OPSIZE.XMM;
-                                    //op2 = getModrm(modrm, arg2);
-                                    //opcount = 2;
-                                    break;
+                case 0x12:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = getModrm(modrm, (mode < 3) ? Operand.OPSIZE.QWord : Operand.OPSIZE.XMM);
+                    instr = new SSEMoveLow(op1, op2, (mode == 3));
+                    break;
 
-                //                case 0x13:
-                //                case 0x17:
-                //                    modrm = getNextByte();
-                //                    mode = (modrm / 0x40) % 0x04;
-                //                    if (mode < 3)
-                //                    {
-                //                        op1 = getModrm(modrm, OPSIZE.QWord);
-                //                        op2 = regxmm[(modrm % 0x40) / 0x08];
-                //                        opcount = 2;
-                //                    }
-                //                    else
-                //                    {
-                //                        opcode = "???";
-                //                        opcount = 0;
-                //                    }
-                //                    break;
+                case 0x13:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    if (mode < 3)
+                    {
+                        op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                        op2 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                        instr = new SSEMoveLow(op1, op2, false);
+                    }
+                    break;
 
-                //                case 0x18:
-                //                    modrm = getNextByte();
-                //                    mode = (modrm / 0x40) % 0x04;
-                //                    uint range = (modrm % 0x40) / 0x08;
-                //                    if ((mode < 3) && (range <= 3))
-                //                    {
-                //        readonly String[] opcode0f18 = { "prefetchnta", "prefetcht0", "prefetcht1", "prefetcht2", "???", "???", "???", "???" };
+                case 0x14:
+                case 0x15:
+                    modrm = getNextByte();
+                    op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = getModrm(modrm, Operand.OPSIZE.XMM);
+                    instr = new SSEUnpack(op1, op2, (b == 0x14) ? SSEUnpack.MODE.LOW : SSEUnpack.MODE.HIGH);
+                    break;
 
-                //                        opcode = opcode0f18[range];
-                //                        op1 = getModrm(modrm, OPSIZE.None);
-                //                        opcount = 1;
-                //                    }
-                //                    else
-                //                    {
-                //                        opcode = "???";
-                //                        opcount = 0;
-                //                    }
-                //                    break;
+                case 0x16:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = getModrm(modrm, (mode < 3) ? Operand.OPSIZE.QWord : Operand.OPSIZE.XMM);
+                    instr = new SSEMoveHigh(op1, op2, (mode == 3));
+                    break;
 
+                case 0x17:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    if (mode < 3)
+                    {
+                        op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                        op2 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                        instr = new SSEMoveHigh(op1, op2, false);
+                    }
+                    break;
+
+                //group 16 instructions
+                case 0x18:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    uint range = (modrm % 0x40) / 0x08;
+                    if ((mode < 3) && (range <= 3))    
+                    {
+                        op1 = getModrm(modrm, Operand.OPSIZE.None);
+                        instr = new SSEPrefetchData(op1, (SSEPrefetchData.MODE)range);
+                    }
+                    break;
             }
             return instr;
         }
 
-//        readonly String[] opcode0f2x = { "???", "???", "???", "???", "???", "???", "???", "???",
-//                                         "movaps", "movaps", "cvtpi2ps", "movntps", "cvttps2pi", "cvtps2pi", "ucomiss", "comiss"};
-                                   
-
-        public Instruction  op0f2x(uint b)
+        public Instruction op0f2x(uint b)
         {
             Instruction instr = null;
-//            opcode = opcode0f2x[(b % 0x10)];
-//            opcount = 0;
-//            uint bhi = (b / 0x08) % 0x08;   //--bb b--- (top two bits should = 0)
-//            uint blo = b % 0x08;            //---- -bbb
-//            uint modrm = 0;
-//            uint mode = 0;
-//            switch (b)
-//            {
-//                case 0x28:
-//                case 0x2a:
-//                    modrm = getNextByte();
-//                    op1 = regxmm[(modrm % 0x40) / 0x08];
-//                    op2 = getModrm(modrm, (b == 0x28 ? OPSIZE.XMM : OPSIZE.MM));
-//                    opcount = 2;
-//                    break;
+            uint modrm = 0;
+            uint mode = 0;
+            switch (b)
+            {
+                case 0x20:
+                    modrm = getNextByte();
+                    op1 = Register32.getReg((int)(modrm % 0x08));
+                    op2 = RegisterCR.getReg((int)((modrm % 0x40) / 0x08));
+                    instr = new Move(op1, op2);
+                    break;
 
-//                case 0x29:
-//                    modrm = getNextByte();
-//                    op1 = getModrm(modrm, OPSIZE.XMM);
-//                    op2 = regxmm[(modrm % 0x40) / 0x08];
-//                    opcount = 2;
-//                    break;
+                case 0x21:
+                    modrm = getNextByte();
+                    op1 = Register32.getReg((int)(modrm % 0x08));
+                    op2 = RegisterDR.getReg((int)((modrm % 0x40) / 0x08));
+                    instr = new Move(op1, op2);
+                    break;
 
-//                case 0x2b:
-//                    modrm = getNextByte();
-//                    mode = (modrm / 0x40) % 0x04;
-//                    if (mode < 3)
-//                    {
-//                        op1 = getModrm(modrm, OPSIZE.XMM);
-//                        op2 = regxmm[(modrm % 0x40) / 0x08];
-//                        opcount = 2;
-//                    }
-//                    else
-//                    {
-//                        opcode = "???";
-//                        opcount = 0;
-//                    }
-//                    break;
+                case 0x22:
+                    modrm = getNextByte();
+                    op1 = RegisterCR.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = Register32.getReg((int)(modrm % 0x08));
+                    instr = new Move(op1, op2);
+                    break;
 
-//                case 0x2c:
-//                case 0x2d:
-//                    modrm = getNextByte();
-//                    mode = (modrm / 0x40) % 0x04;
-//                    op1 = regmm[(modrm % 0x40) / 0x08];
-//                    op2 = getModrm(modrm, (mode < 3) ? OPSIZE.MM : OPSIZE.XMM);
-//                    opcount = 2;
-//                    break;
+                case 0x23:
+                    modrm = getNextByte();
+                    op1 = RegisterDR.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = Register32.getReg((int)(modrm % 0x08));
+                    instr = new Move(op1, op2);
+                    break;
 
-//                case 0x2e:
-//                case 0x2f:
-//                    modrm = getNextByte();
-//                    mode = (modrm / 0x40) % 0x04;
-//                    op1 = regxmm[(modrm % 0x40) / 0x08];
-//                    op2 = getModrm(modrm, (mode < 3) ? OPSIZE.DWord : OPSIZE.XMM);
-//                    opcount = 2;
-//                    break;
+                case 0x28:
+                    modrm = getNextByte();
+                    op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = getModrm(modrm, Operand.OPSIZE.XMM);
+                    instr = new SSEMovePacked(op1, op2, true);
+                    break;
 
-//            }
-                        return instr;
+                case 0x29:
+                    modrm = getNextByte();
+                    op1 = getModrm(modrm, Operand.OPSIZE.XMM);
+                    op2 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                    instr = new SSEMovePacked(op1, op2, true);
+                    break;
+
+                case 0x2a:
+                    modrm = getNextByte();
+                    op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = getModrm(modrm, Operand.OPSIZE.MM);
+                    instr = new SSEConvertFromInt(op1, op2, true);
+                    break;
+
+                case 0x2b:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    if (mode < 3)
+                    {
+                        op1 = getModrm(modrm, Operand.OPSIZE.XMM);
+                        op2 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                        instr = new SSEStorePacked(op1, op2);
+                    }
+                    break;
+
+                case 0x2c:
+                case 0x2d:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    op1 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = getModrm(modrm, (mode < 3) ? Operand.OPSIZE.MM : Operand.OPSIZE.XMM);
+                    instr = new SSEConvertPackedToInt(op1, op2, (b == 0x02c) ? true : false);
+                    break;
+
+                case 0x2e:
+                case 0x2f:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = getModrm(modrm, (mode < 3) ? Operand.OPSIZE.DWord : Operand.OPSIZE.XMM);
+                    instr = new SSECompareSetFlags(op1, op2, (b == 0x2e) ? true : false);
+                    break;
+            }
+            return instr;
         }
 
         public Instruction  op0f3x(uint b)
         {
             Instruction instr = null;
+            switch (b)
+            {
+                case 0x30:
+                    instr = new WriteModelSpecReg();
+                    break;
+
+                case 0x31:
+                    instr = new ReadCounters(ReadCounters.MODE.TIMESTAMP);
+                    break;
+
+                case 0x32:
+                    instr = new ReadModelSpecReg();
+                    break;
+
+                case 0x33:
+                    instr = new ReadCounters(ReadCounters.MODE.PERFORMANCE);
+                    break;
+
+                case 0x34:
+                    instr = new SystemCall(SystemCall.MODE.SYSENTER);
+                    break;
+
+                case 0x35:
+                    instr = new SystemRet(SystemRet.MODE.SYSEXIT);
+                    break;
+
+                    //0x0f87 instruction not implemented yet
+            }
             return instr;
         }
 
         public Instruction  op0f4x(uint b)
         {
-            Instruction instr = null;
-            return instr;
+            uint modrm = getNextByte();
+            ConditionalMove.CONDIT condit = (ConditionalMove.CONDIT)(b % 0x10);
+            op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+            op2 = getModrm(modrm, Operand.OPSIZE.DWord);
+            return new ConditionalMove(op1, op2, condit);
         }
 
         public Instruction  op0f5x(uint b)
         {
             Instruction instr = null;
+            uint modrm = 0;
+            uint mode = 0;
+            if (b == 0x50)
+            {
+                modrm = getNextByte();
+                mode = (modrm / 0x40) % 0x04;
+                if (mode == 3)
+                {
+                    op1 = Register32.getReg((int)((modrm % 0x40) / 0x08));
+                    op2 = getModrm(modrm, Operand.OPSIZE.XMM);
+                    instr = new SSEExtract(op1, op2);
+                }
+            }
+            else if (b == 0x5a)
+            {
+                modrm = getNextByte();
+                mode = (modrm / 0x40) % 0x04;
+                op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, (mode != 3) ? Operand.OPSIZE.MM : Operand.OPSIZE.XMM);
+                instr = new SSE2ConvertPrecision(op1, op2, SSE2ConvertPrecision.DIR.SINGLETODOUBLE, true);
+            }
+            else
+            {
+                modrm = getNextByte();
+                op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, Operand.OPSIZE.XMM);
+                switch (b)
+                {
+                    case 0x51:
+                        instr = new SSESqrt(op1, op2, true);
+                        break;
+
+                    case 0x52:
+                        instr = new SSEReciprocalSqrt(op1, op2, true);
+                        break;
+
+                    case 0x53:
+                        instr = new SSEReciprocal(op1, op2, true);
+                        break;
+
+                    case 0x54:
+                        instr = new SSEAnd(op1, op2);
+                        break;
+
+                    case 0x55:
+                        instr = new SSENand(op1, op2);
+                        break;
+
+                    case 0x56:
+                        instr = new SSEOr(op1, op2);
+                        break;
+
+                    case 0x57:
+                        instr = new SSEXor(op1, op2);
+                        break;
+
+                    case 0x58:
+                        instr = new SSEAdd(op1, op2, true);
+                        break;
+
+                    case 0x59:
+                        instr = new SSEMult(op1, op2, true);
+                        break;
+
+                    case 0x5b:
+                        instr = new SSE2ConvertSingle(op1, op2, SSE2ConvertSingle.DIR.DOUBLETOSINGLE, false);
+                        break;
+
+                    case 0x5c:
+                        instr = new SSESubtract(op1, op2, true);
+                        break;
+
+                    case 0x5d:
+                        instr = new SSEMin(op1, op2, true);
+                        break;
+
+                    case 0x5e:
+                        instr = new SSEDivide(op1, op2, true);
+                        break;
+
+                    case 0x5f:
+                        instr = new SSEMax(op1, op2, true);
+                        break;
+                }
+            }
             return instr;
         }
 
         public Instruction  op0f6x(uint b)
         {
             Instruction instr = null;
+            uint modrm = 0;
+            uint mode = 0;
+            if ((b >= 0x60 && b <= 0x62) || (b >= 0x68 && b <= 0x6a))
+            {
+                modrm = getNextByte();
+                mode = (modrm / 0x40) % 0x04;
+                op1 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, ((b <= 0x62) && (mode != 3)) ? Operand.OPSIZE.DWord : Operand.OPSIZE.MM);
+                instr = new MMXUnpack(op1, op2, (MMXUnpack.MODE)((b % 8) % 3), (b >= 0x68));
+            }
+            else if ((b == 0x63) || (b == 0x67) || (b == 0x6b))
+            {
+                modrm = getNextByte();
+                mode = (modrm / 0x40) % 0x04;
+                op1 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, Operand.OPSIZE.MM);
+                instr = new MMXPack(op1, op2, (b <= 0x67) ? MMXPack.MODE.WB : MMXPack.MODE.DW, (b != 0x67));
+            }
+            else if (b >= 0x64 && b <= 0x66)
+            {
+                modrm = getNextByte();
+                op1 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, Operand.OPSIZE.MM);
+                instr = new MMXCompGtrThn(op1, op2, (MMXCompGtrThn.MODE)(b - 0x64));
+            }
+            else
+            {
+                modrm = getNextByte();
+                op1 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, (b == 0x6e) ? Operand.OPSIZE.DWord : Operand.OPSIZE.MM);
+                instr = new MMXMoveWord(op1, op2, (b == 0x6e) ? MMXMoveWord.MODE.DOUBLE : MMXMoveWord.MODE.QUAD);
+            }
             return instr;
         }
 
         public Instruction  op0f7x(uint b)
         {
             Instruction instr = null;
+            uint modrm = 0;
+            uint mode = 0;
+            if (b >= 0x74 && b <= 0x76)
+            {
+                modrm = getNextByte();
+                op1 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, Operand.OPSIZE.MM);
+                instr = new MMXCompEqual(op1, op2, (MMXCompEqual.MODE)(b - 0x74));
+            }
+            else if (b == 0x77)
+            {
+                instr = new MMXEmptyState();
+            }
+            else if (b == 0x7e || b == 0x7f)
+            {
+                modrm = getNextByte();
+                op1 = getModrm(modrm, (b == 0x7e) ? Operand.OPSIZE.DWord : Operand.OPSIZE.MM);
+                op2 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                instr = new MMXMoveWord(op1, op2, (b == 0x7e) ? MMXMoveWord.MODE.DOUBLE : MMXMoveWord.MODE.QUAD);
+            }
             return instr;
         }
-
-//        readonly String[] opcode0f8x = { "jo", "jno", "jb", "jae", "je", "jne", "jbe", "ja", "js", "jns", "jp", "jnp", "jl", "jge", "jle", "jg" };
 
         public Instruction  op0f8x(uint b)
         {
-            Instruction instr = null;
-//            opcode = opcode0f8x[(b % 0x10)];
-//            op1 = rel32();
-//            opcount = 1;
-            return instr;
-
+            JumpConditional.CONDIT condit = (JumpConditional.CONDIT)(b % 0x10);
+            op1 = rel32();                                                               //Jz
+            return new JumpConditional(op1, condit);
         }
-
-//        readonly String[] opcode0f9x = { "seto", "setno", "setb", "setae", "sete", "setne", "setbe", "seta", 
-//                                         "sets", "setns", "setp", "setnp", "setl", "setge", "setle", "setg" };
 
         public Instruction op0f9x(uint b)
         {
-            Instruction instr = null;
-//            opcode = opcode0f9x[(b % 0x10)];
-//            uint modrm = getNextByte();
-//            op1 = getModrm(modrm, OPSIZE.Byte);
-//            opcount = 1;
-                        return instr;
+            uint modrm = getNextByte();
+            op1 = getModrm(modrm, Operand.OPSIZE.Byte);
+            SetByte.CONDIT condit = (SetByte.CONDIT)(b % 0x10);
+            return new SetByte(op1, condit);
         }
-
-//        readonly String[] opcode0fax = { "push", "pop", "cpuid", "bt", "shld", "shld", "xbts", "ibts", 
-//                                         "push", "pop", "rsm", "bts", "shrd", "shrd", "???", "imul" };
-//        readonly String[] opcode0fae = { "fxsave", "fxrstor", "ldmxcsr", "stmxcsr", "???", "???", "???", "clflush" };
-//        readonly OPSIZE[] size0fae = { OPSIZE.None, OPSIZE.None, OPSIZE.DWord, OPSIZE.DWord, OPSIZE.None, OPSIZE.None, OPSIZE.None, OPSIZE.None };
-        
 
         public Instruction op0fax(uint b)
         {
             Instruction instr = null;
-//            opcode = opcode0fax[(b % 0x10)];
-//            opcount = 0;
-//            uint modrm = 0;
-//            switch (b)
-//            {
-//                case 0xa0:
-//                case 0xa1:
-//                case 0xa8:
-//                case 0xa9:
-//                    op1 = (b <= 0xa1) ? "fs" : "gs";
-//                    opcount = 1;
-//                    break;
+            uint modrm = 0;
+            switch (b)
+            {
+                case 0xa0:
+                case 0xa8:
+                    op1 = (b == 0xa0) ? Segment.FS : Segment.GS;
+                    instr = new Push(op1);
+                    break;
 
-//                case 0xa3:
-//                case 0xa7:
-//                case 0xab:
-//                    modrm = getNextByte();
-//                    op1 = getModrm(modrm, OPSIZE.DWord);
-//                    op2 = getReg(OPSIZE.DWord, (modrm % 0x40) / 0x08);
-//                    opcount = 2;
-//                    break;
+                case 0xa1:
+                case 0xa9:
+                    op1 = (b == 0xa1) ? Segment.FS : Segment.GS;
+                    instr = new Pop(op1);
+                    break;
 
-//                case 0xa4:
-//                case 0xac:
-//                    modrm = getNextByte();
-//                    op1 = getModrm(modrm, OPSIZE.DWord);
-//                    op2 = getReg(OPSIZE.DWord, (modrm % 0x40) / 0x08);
-//                    op3 = getImm(OPSIZE.Byte);
-//                    opcount = 3;
-//                    break;
+                case 0xa2:
+                    instr = new CpuId();
+                    break;
 
-//                case 0xa5:
-//                case 0xad:
-//                    modrm = getNextByte();
-//                    op1 = getModrm(modrm, OPSIZE.DWord);
-//                    op2 = getReg(OPSIZE.DWord, (modrm % 0x40) / 0x08);
-//                    op3 = "cl";
-//                    opcount = 3;
-//                    break;
+                case 0xa3:
+                case 0xab:
+                    modrm = getNextByte();
+                    op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                    op2 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                    instr = new BitTest(op1, op2, ((b == 0xa3) ? BitTest.MODE.BT : BitTest.MODE.BTS));
+                    break;
 
-//                case 0xa6:
-//                case 0xaf:
-//                    modrm = getNextByte();
-//                    op1 = getReg(OPSIZE.DWord, (modrm % 0x40) / 0x08);
-//                    op2 = getModrm(modrm, OPSIZE.DWord);
-//                    opcount = 2;
-//                    break;
+                case 0xa4:
+                case 0xac:
+                case 0xa5:
+                case 0xad:
+                    modrm = getNextByte();
+                    op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                    op2 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                    op3 = (b % 2 == 0) ? getImm(Operand.OPSIZE.Byte) : Register8.CL;
+                    instr = new DoublePrecShift(op1, op2, op3, ((b <= 0xa5) ? DoublePrecShift.MODE.LEFT : DoublePrecShift.MODE.RIGHT));
+                    break;
 
-//                case 0xae:
-//                    modrm = getNextByte();
-//                    uint mode = (modrm / 0x40) % 0x04;
-//                    uint range = (modrm % 0x40) / 0x08;
-//                    if ((mode < 3) && ((range <= 3) || (range == 7)))
-//                    {
-//                        opcode = opcode0fae[range];
-//                        op1 = getModrm(modrm, size0fae[range]);
-//                        opcount = 1;
-//                    }
-//                    else
-//                    {
-//                        opcode = "???";
-//                        opcount = 0;
-//                    }
-//                    break;
 
-//            }
+                case 0xaa:
+                    instr = new ResumeFromSysMgt();
+                    break;
+
+                case 0xae:
+                    modrm = getNextByte();
+                    uint mode = (modrm / 0x40) % 0x04;
+                    uint range = (modrm % 0x40) / 0x08;
+                    if ((mode < 3) && ((range <= 3) || (range == 7)))
+                    {
+                        switch (range)
+                        {
+                            case 0:
+                                op1 = getModrm(modrm, Operand.OPSIZE.None);
+                                instr = new StoreMMXState(op1);
+                                break;
+                            case 1:
+                                op1 = getModrm(modrm, Operand.OPSIZE.None);
+                                instr = new RestoreMMXState(op1);
+                                break;
+                            case 2:
+                                op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                                instr = new SSELoadState(op1);
+                                break;
+                            case 3:
+                                op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                                instr = new SSEStoreState(op1);
+                                break;
+                            case 7:
+                                op1 = getModrm(modrm, Operand.OPSIZE.None);
+                                instr = new CacheFlush(op1, false);
+                                break;
+
+                        }
+                    }
+                    else if (modrm == 0xe8)
+                    {
+                        instr = new SSE2LoadFence();
+                    }
+                    else if (modrm == 0xf0)
+                    {
+                        instr = new SSE2MemoryFence();
+                    }
+                    else if (modrm == 0xf8)
+                    {
+                        instr = new SSEStoreFence();
+                    }
+                    break;
+
+                case 0xaf:
+                    modrm = getNextByte();
+                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                    op2 = getModrm(modrm, Operand.OPSIZE.DWord);
+                    instr = new IntMultiply(op1, op2);
+                    break;
+            }
             return instr;
         }
-
-//        readonly String[] opcode0fbx = { "cmpxchg", "cmpxchg", "lss", "btr", "lfs", "lgs", "movzx", "movzx", 
-//                                         "jmpe", "???", "???", "btc", "bsf", "bsr", "movsx", "movsx" };
-//        readonly OPSIZE[] size0fbx = { OPSIZE.None, OPSIZE.None, OPSIZE.None, OPSIZE.None, OPSIZE.None, OPSIZE.None, OPSIZE.Byte, OPSIZE.Word, 
-//                                       OPSIZE.None, OPSIZE.None, OPSIZE.None, OPSIZE.None, OPSIZE.DWord, OPSIZE.DWord, OPSIZE.Byte, OPSIZE.Word };
 
         public Instruction op0fbx(uint b)
         {
             Instruction instr = null;
-//            opcode = opcode0fbx[(b % 0x10)];
-//            opcount = 0;
-//            uint modrm = 0;
-//            switch (b)
-//            {
-//                case 0xb0:
-//                    modrm = getNextByte();
-//                    op1 = getModrm(modrm, OPSIZE.Byte);
-//                    op2 = getReg(OPSIZE.Byte, (modrm % 0x40) / 0x08);
-//                    opcount = 2;
-//                    break;
+            uint modrm = 0;
+            uint mode = 0;
+            switch (b)
+            {
+                case 0xb0:
+                case 0xb1:
+                    modrm = getNextByte();
+                    Operand.OPSIZE size = (b == 0xb0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.DWord;
+                    op1 = getModrm(modrm, size);
+                    op2 = getReg(size, (modrm % 0x40) / 0x08);
+                    instr = new CompareExchange(op1, op2, false);
+                    break;
 
-//                case 0xb1:
-//                case 0xb3:
-//                case 0xbb:
-//                    modrm = getNextByte();
-//                    op1 = getModrm(modrm, OPSIZE.DWord);
-//                    op2 = getReg(OPSIZE.DWord, (modrm % 0x40) / 0x08);
-//                    opcount = 2;
-//                    break;
+                case 0xb2:
+                case 0xb4:
+                case 0xb5:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    if (mode < 3)
+                    {
+                        op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                        op2 = getModrm(modrm, Operand.OPSIZE.FWord);
+                        instr = new LoadFarPointer(op1, op2,
+                            ((b == 0xb2) ? LoadFarPointer.SEG.SS : (b == 0xb4) ? LoadFarPointer.SEG.FS : LoadFarPointer.SEG.GS));
+                    }
+                    break;
 
-//                case 0xb6:
-//                case 0xb7:
-//                case 0xbc:
-//                case 0xbd:
-//                case 0xbe:
-//                case 0xbf:
-//                    modrm = getNextByte();
-//                    op1 = getReg(OPSIZE.DWord, (modrm % 0x40) / 0x08);
-//                    op2 = getModrm(modrm, size0fbx[(b % 0x10)]);
-//                    opcount = 2;
-//                    break;
+                case 0xb6:
+                case 0xb7:
+                case 0xbe:
+                case 0xbf:
+                    modrm = getNextByte();
+                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                    op2 = getModrm(modrm, (((b % 2) == 0) ? Operand.OPSIZE.Byte : Operand.OPSIZE.Word));
+                    instr = new MoveExtend(op1, op2, ((b < 0xbe) ? MoveExtend.MODE.ZERO : MoveExtend.MODE.SIGN));
+                    break;
 
-//                case 0xb2:
-//                case 0xb4:
-//                case 0xb5:
-//                    modrm = getNextByte();
-//                    uint mode = (modrm / 0x40) % 0x04;
-//                    if (mode < 3)
-//                    {
-//                        op1 = getReg(OPSIZE.DWord, (modrm % 0x40) / 0x08);
-//                        op2 = getModrm(modrm, OPSIZE.FWord);
-//                        opcount = 2;
-//                    }
-//                    else
-//                    {
-//                        opcode = "???";
-//                        opcount = 0;
-//                    }
-//                    break;
+                //group 8 instructions
+                case 0xba:
+                    modrm = getNextByte();
+                    mode = (modrm / 0x40) % 0x04;
+                    uint range = (modrm % 0x40) / 0x08;
+                    if (range >= 4  && range <= 8)
+                    {
+                        op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                        op2 = getImm(Operand.OPSIZE.Byte);
+                        instr = new BitTest(op1, op2, (BitTest.MODE)(range - 4));
+                    }
+                    break;
 
-//                case 0xb8:
-//                    op1 = rel32();
-//                    opcount = 1;
-//                    break;
-                
-//            }
+                case 0xb3:
+                case 0xbb:
+                    modrm = getNextByte();
+                    op1 = getModrm(modrm, Operand.OPSIZE.DWord);
+                    op2 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                    instr = new BitTest(op1, op2, (b == 0xb3) ? BitTest.MODE.BTR : BitTest.MODE.BTC);
+                    break;
+
+                case 0xbc:
+                case 0xbd:
+                    modrm = getNextByte();
+                    op1 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);
+                    op2 = getModrm(modrm, Operand.OPSIZE.DWord);
+                    instr = new BitScan(op1, op2, (b == 0xbc) ? BitScan.MODE.BSF : BitScan.MODE.BSR);
+                    break;
+            }
             return instr;
         }
 
         public Instruction op0fcx(uint b)
         {
             Instruction instr = null;
+            uint modrm = 0;
+            uint mode = 0;
+            if (b <= 0xc7)
+            {
+                switch (b)
+                {
+                    case 0xc0:
+                        modrm = getNextByte();
+                        op1 = getModrm(modrm, Operand.OPSIZE.Byte);                     //Eb
+                        op2 = getReg(Operand.OPSIZE.Byte, (modrm % 0x40) / 0x08);       //Gb
+                        instr = new ExchangeAdd(op1, op2);
+                        break;
+
+                    case 0xc1:
+                        modrm = getNextByte();
+                        op1 = getModrm(modrm, Operand.OPSIZE.DWord);                    //Ev
+                        op2 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);      //Gv
+                        instr = new ExchangeAdd(op1, op2);
+                        break;
+
+                    case 0xc2:
+                        modrm = getNextByte();
+                        op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                        op2 = getModrm(modrm, Operand.OPSIZE.XMM);
+                        op3 = getImm(Operand.OPSIZE.Byte);
+                        instr = new SSECompare(op1, op2, op3, true);
+                        break;
+
+                    case 0xc3:
+                        modrm = getNextByte();
+                        mode = (modrm / 0x40) % 0x04;
+                        if (mode < 3)
+                        {
+                            op1 = getModrm(modrm, Operand.OPSIZE.DWord);                    //Ev
+                            op2 = getReg(Operand.OPSIZE.DWord, (modrm % 0x40) / 0x08);      //Gv
+                            instr = new SSE2StoreInt(op1, op2);
+                        }
+                        break;
+
+                    case 0xc6:
+                        modrm = getNextByte();
+                        op1 = RegisterXMM.getReg((int)((modrm % 0x40) / 0x08));
+                        op2 = getModrm(modrm, Operand.OPSIZE.XMM);
+                        op3 = getImm(Operand.OPSIZE.Byte);
+                        instr = new SSEShuffle(op1, op2, op3);
+                        break;
+
+                    case 0xc7:
+                        modrm = getNextByte();
+                        mode = (modrm / 0x40) % 0x04;
+                        uint range = (modrm % 0x40) / 0x08;
+                        if ((range == 1) && (mode < 3))
+                        {
+                            op1 = getModrm(modrm, Operand.OPSIZE.QWord);
+                            instr = new CompareExchange(op1, null, true);
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                op1 = Register32.getReg((int)(b - 0xc8));
+                instr = new ByteSwap(op1);
+            }
             return instr;
         }
 
         public Instruction op0fdx(uint b)
         {
             Instruction instr = null;
+            uint modrm = 0;
+            uint mode = 0;
+            if ((b >= 0xd1 && b <= 0xd5) || (b == 0xd8) || (b == 0xd9) || (b >= 0xdb && b <= 0xdd) || (b == 0xdf))
+            {
+                modrm = getNextByte();
+                mode = (modrm / 0x40) % 0x04;
+                op1 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, Operand.OPSIZE.MM);
+                switch (b)
+                {
+                    case 0xd1:
+                    case 0xd2:
+                    case 0xd3:
+                        instr = new MMXShift(op1, op2, (MMXShift.SIZE)(b - 0xd1), MMXShift.DIR.RIGHT, false);
+                        break;
+
+                    case 0xd4:
+                        instr = new SSE2Add128(op1, op2);
+                        break;
+
+                    case 0xd5:
+                        instr = new MMXMult(op1, op2, MMXMult.MODE.LOW);
+                        break;
+
+                    case 0xd8:
+                    case 0xd9:
+                        instr = new MMXSubtract(op1, op2, (MMXSubtract.SIZE)(b - 0xd8), true, false);
+                        break;
+
+                    case 0xdb:
+                        instr = new MMXAnd(op1, op2);
+                        break;
+
+                    case 0xdc:
+                    case 0xdd:
+                        instr = new MMXAdd(op1, op2, (MMXAdd.SIZE)(b - 0xdc), true, false);
+                        break;
+
+                    case 0xdf:
+                        instr = new MMXAddNot(op1, op2);
+                        break;
+                }
+            }
             return instr;
         }
 
         public Instruction op0fex(uint b)
         {
             Instruction instr = null;
+            uint modrm = 0;
+            uint mode = 0;
+            if (b == 0xe1 || b == 0xe2 || b == 0xe5 || b == 0xe8 || b == 0xe9 || b == 0xeb || b == 0xec || b == 0xed || b == 0xef)
+            {
+                modrm = getNextByte();
+                op1 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, Operand.OPSIZE.MM);
+                switch (b)
+                {
+                    case 0xe1:
+                    case 0xe2:
+                        instr = new MMXShift(op1, op2, (MMXShift.SIZE)(b - 0xe1), MMXShift.DIR.RIGHT, true);
+                        break;
+
+                    case 0xe5:
+                        instr = new MMXMult(op1, op2, MMXMult.MODE.HIGH);
+                        break;
+
+                    case 0xe8:
+                    case 0xe9:
+                        instr = new MMXSubtract(op1, op2, (MMXSubtract.SIZE)(b - 0xe8), true, true);
+                        break;
+
+                    case 0xeb:
+                        instr = new MMXOr(op1, op2);
+                        break;
+
+                    case 0xec:
+                    case 0xed:
+                        instr = new MMXAdd(op1, op2, (MMXAdd.SIZE)(b - 0xec), true, true);
+                        break;
+
+                    case 0xef:
+                        instr = new MMXXor(op1, op2);
+                        break;
+                }
+            }
+            else if (b == 0xe7)
+            {
+                modrm = getNextByte();
+                mode = (modrm / 0x40) % 0x04;
+                if (mode < 3)
+                {
+                    op1 = getModrm(modrm, Operand.OPSIZE.MM);
+                    op2 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                    instr = new SSEStoreQuad(op1, op2);
+                }
+            }
             return instr;
         }
 
         public Instruction op0ffx(uint b)
         {
             Instruction instr = null;
+            uint modrm = 0;
+            uint mode = 0;
+            if (b >= 0xf1 && b < 0xff)
+            {
+                modrm = getNextByte();
+                mode = (modrm / 0x40) % 0x04;
+                op1 = RegisterMM.getReg((int)((modrm % 0x40) / 0x08));
+                op2 = getModrm(modrm, Operand.OPSIZE.MM);
+                switch (b)
+                {
+                    case 0xf1:
+                    case 0xf2:
+                    case 0xf3:
+                        instr = new MMXShift(op1, op2, (MMXShift.SIZE)(b - 0xf1), MMXShift.DIR.LEFT, false);
+                        break;
+
+                    case 0xf4:
+                        instr = new SSE2Mult128(op1, op2);
+                        break;
+
+                    case 0xf5:
+                        instr = new MMXMultAdd(op1, op2);
+                        break;
+
+                    case 0xf7:
+                        instr = new SSEStoreQuadBytes(op1, op2);
+                        break;
+                        
+                    case 0xf8:
+                    case 0xf9:
+                    case 0xfa:
+                        instr = new MMXSubtract(op1, op2, (MMXSubtract.SIZE)(b - 0xf8), false, false);
+                        break;
+
+                        case 0xfb:
+                        instr = new SSE2Subtract128(op1, op2);
+                        break;
+                        
+                    case 0xfc:
+                    case 0xfd:
+                    case 0xfe:
+                        instr = new MMXAdd(op1, op2, (MMXAdd.SIZE)(b - 0xfc), false, false);
+                        break;
+                }
+            }
+            else if (b == 0xff)
+            {
+                instr = instr = new UndefinedOp(0);
+            }
             return instr;
         }
 
@@ -2246,6 +2655,12 @@ namespace Origami.Asm32
                 case Operand.OPSIZE.DWord:
                 case Operand.OPSIZE.FWord:
                     result = Register32.getReg((int)reg);
+                    break;
+                case Operand.OPSIZE.MM:
+                    result = RegisterMM.getReg((int)reg);
+                    break;
+                case Operand.OPSIZE.XMM:
+                    result = RegisterXMM.getReg((int)reg);
                     break;
             }
 
