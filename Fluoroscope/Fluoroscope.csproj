@@ -49,7 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Asm32\Instruction0F.cs" />
+    <Compile Include="Asm32\InstructionSys.cs" />
     <Compile Include="Asm32\Instruction87.cs" />
     <Compile Include="Asm32\Instruction.cs" />
     <Compile Include="Asm32\InstructionMMX.cs" />

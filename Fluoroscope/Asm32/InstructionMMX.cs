@@ -24,20 +24,31 @@ using System.Text;
 
 namespace Origami.Asm32
 {
-    //MMXEmptyState  - EMMS
-    public class MMXEmptyState : Instruction
+    //- data transfer -------------------------------------------------------------
+
+    //MMXMoveWord - MOVD/MOVQ
+    public class MMXMoveWord : Instruction
     {
-        public MMXEmptyState()
+        public enum MODE { DOUBLE, QUAD }
+        MODE mode;
+
+        public MMXMoveWord(Operand _op1, Operand _op2, MODE _mode)
             : base()
         {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+            mode = _mode;
         }
 
         public override string ToString()
         {
-            return "EMMS";
+            return (mode == MODE.DOUBLE) ? "MOVD" : "MOVQ";
         }
     }
 
+    //- conversion ----------------------------------------------------------------
+    
     //MMXPack - PACKSSDW/PACKSSWB/PACKUSWB
     public class MMXPack : Instruction
     {
@@ -86,26 +97,7 @@ namespace Origami.Asm32
         }
     }
 
-    //MMXMoveWord - MOVD/MOVQ
-    public class MMXMoveWord : Instruction
-    {
-        public enum MODE { DOUBLE, QUAD }
-        MODE mode;
-
-        public MMXMoveWord(Operand _op1, Operand _op2, MODE _mode)
-            : base()
-        {
-            opcount = 2;
-            op1 = _op1;
-            op2 = _op2;
-            mode = _mode;
-        }
-
-        public override string ToString()
-        {
-            return (mode == MODE.DOUBLE) ? "MOVD" : "MOVQ";
-        }
-    }
+    //- arithmetic -------------------------------------------------------------
 
     //MMXAdd - PADDB/PADDW/PADDD/PADDSB/PADDSW/PADDUSB/PADDUSW
     public class MMXAdd : Instruction
@@ -199,6 +191,52 @@ namespace Origami.Asm32
         }
     }
 
+    //- comparison ----------------------------------------------------------------
+
+    //MMXCompEqual - PCMPEQB/PCMPEQW/PCMPEQD
+    public class MMXCompEqual : Instruction
+    {
+        public enum MODE { BYTE, WORD, DOUBLE }
+        MODE mode;
+
+        public MMXCompEqual(Operand _op1, Operand _op2, MODE _mode)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+            mode = _mode;
+        }
+
+        public override string ToString()
+        {
+            return (mode == MODE.BYTE) ? "PCMPEQB" : (mode == MODE.WORD) ? "PCMPEQW" : "PCMPEQD";
+        }
+    }
+
+    //MMXCompGtrThn - PCMPGTB/PCMPGTW/PCMPGTD
+    public class MMXCompGtrThn : Instruction
+    {
+        public enum MODE { BYTE, WORD, DOUBLE }
+        MODE mode;
+
+        public MMXCompGtrThn(Operand _op1, Operand _op2, MODE _mode)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+            mode = _mode;
+        }
+
+        public override string ToString()
+        {
+            return (mode == MODE.BYTE) ? "PCMPGTB" : (mode == MODE.WORD) ? "PCMPGTW" : "PCMPGTD";
+        }
+    }
+
+    //- shift / rotate ------------------------------------------------------------
+
     //MMXShift - PSLLW/PSLLD/PSLLQ/PSRLW/PSRLD/PSRLQ/PSRAW/PSRAD/PSRAQ
     public class MMXShift : Instruction
     {
@@ -226,6 +264,8 @@ namespace Origami.Asm32
                 ((size == SIZE.WORD) ? "PSRLW" : (size == SIZE.DOUBLE) ? "PSRLD" : "PSRLQ");
         }
     }
+
+    //- logical -------------------------------------------------------------------
 
     //MMXAnd - PAND
     public class MMXAnd : Instruction
@@ -295,46 +335,51 @@ namespace Origami.Asm32
         }
     }
 
-    //MMXCompEqual - PCMPEQB/PCMPEQW/PCMPEQD
-    public class MMXCompEqual : Instruction
-    {
-        public enum MODE { BYTE, WORD, DOUBLE }
-        MODE mode;
+    //- state mgmt ----------------------------------------------------------------
 
-        public MMXCompEqual(Operand _op1, Operand _op2, MODE _mode)
+    //MMXEmptyState  - EMMS
+    public class MMXEmptyState : Instruction
+    {
+        public MMXEmptyState()
             : base()
         {
-            opcount = 2;
-            op1 = _op1;
-            op2 = _op2;
-            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (mode == MODE.BYTE) ? "PCMPEQB" : (mode == MODE.WORD) ? "PCMPEQW" : "PCMPEQD";
+            return "EMMS";
         }
     }
 
-    //MMXCompGtrThn - PCMPGTB/PCMPGTW/PCMPGTD
-    public class MMXCompGtrThn : Instruction
+    //StoreMMXState - FXSAVE
+    public class StoreMMXState : Instruction
     {
-        public enum MODE { BYTE, WORD, DOUBLE }
-        MODE mode;
-
-        public MMXCompGtrThn(Operand _op1, Operand _op2, MODE _mode)
+        public StoreMMXState(Operand _op1)
             : base()
         {
-            opcount = 2;
+            opcount = 1;
             op1 = _op1;
-            op2 = _op2;
-            mode = _mode;
         }
 
         public override string ToString()
         {
-            return (mode == MODE.BYTE) ? "PCMPGTB" : (mode == MODE.WORD) ? "PCMPGTW" : "PCMPGTD";
+            return "FXSAVE";
         }
     }
 
+    //RestoreMMXState - FXRSTOR
+    public class RestoreMMXState : Instruction
+    {
+        public RestoreMMXState(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FXRSTOR";
+        }
+    }
 }

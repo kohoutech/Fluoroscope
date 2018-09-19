@@ -25,7 +25,171 @@ using System.Text;
 namespace Origami.Asm32
 {
 
-//- arithmetic ----------------------------------------------------------------
+    //- data xfer -------------------------------------------------------------
+
+    public class FLoad : Instruction
+    {
+        public FLoad(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FLD";
+        }
+    }
+
+    public class FStore : Instruction
+    {
+        bool pop;
+
+        public FStore(Operand _op1, bool _pop)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            pop = _pop;
+        }
+
+        public override string ToString()
+        {
+            return (pop) ? "FSTP" : "FST";
+        }
+    }
+
+    public class FLoadInteger : Instruction
+    {
+        public FLoadInteger(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FILD";
+        }
+    }
+
+    public class FStoreInteger : Instruction
+    {
+        bool pop;
+        bool trunc;
+
+        public FStoreInteger(Operand _op1, bool _pop, bool _trunc)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+            pop = _pop;
+            trunc = _trunc;
+        }
+
+        public override string ToString()
+        {
+            return (trunc) ? "FISTTP" : (pop) ? "FISTP" : "FIST";
+        }
+    }
+
+    public class FLoadBCD : Instruction
+    {
+        public FLoadBCD(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FBLD";
+        }
+    }
+
+    public class FStoreBCD : Instruction
+    {
+        public FStoreBCD(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FBSTP";
+        }
+    }
+
+    public class FExchange : Instruction
+    {
+        public FExchange(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FXCH";
+        }
+    }
+
+    public class FConditionalMove : Instruction
+    {
+        public enum CONDIT { MOVB, MOVNB, MOVE, MOVNE, MOVBE, MOVNBE, MOVU, MOVNU };
+
+        CONDIT condit;
+
+        public FConditionalMove(Operand _op1, Operand _op2, CONDIT _condit)
+            : base()
+        {
+            opcount = 2;
+            op1 = _op1;
+            op2 = _op2;
+            condit = _condit;
+        }
+
+        public override string ToString()
+        {
+            String result = "???";
+            switch (condit)
+            {
+                case CONDIT.MOVB:
+                    result = "FCMOVB";
+                    break;
+                case CONDIT.MOVNB:
+                    result = "FCMOVNB";
+                    break;
+                case CONDIT.MOVE:
+                    result = "FCMOVE";
+                    break;
+                case CONDIT.MOVNE:
+                    result = "FCMOVNE";
+                    break;
+                case CONDIT.MOVBE:
+                    result = "FCMOVBE";
+                    break;
+                case CONDIT.MOVNBE:
+                    result = "FCMOVNBE";
+                    break;
+                case CONDIT.MOVU:
+                    result = "FCMOVU";
+                    break;
+                case CONDIT.MOVNU:
+                    result = "FCMOVNU";
+                    break;
+            }
+            return result;
+        }
+    }
+
+    //- arithmetic ----------------------------------------------------------------
 
     public class FAdd : Instruction
     {
@@ -133,89 +297,11 @@ namespace Origami.Asm32
         }
     }
 
-    public class FSquareRoot : Instruction
+    public class FRemainder : Instruction
     {
         public override string ToString()
         {
-            return "FSQRT";
-        }
-    }
-
-    public class F2XM1 : Instruction
-    {
-        public override string ToString()
-        {
-            return "F2XM1";
-        }
-    }
-
-    public class FYL2X : Instruction
-    {
-        public override string ToString()
-        {
-            return "FYL2X";
-        }
-    }
-
-    public class FYL2XP1 : Instruction
-    {
-        public override string ToString()
-        {
-            return "FYL2XP1";
-        }
-    }
-
-//- trignometric -------------------------------------------------------------
-
-    public class FSine : Instruction
-    {
-        public override string ToString()
-        {
-            return "FSIN";
-        }
-    }
-
-    public class FCosine : Instruction
-    {
-        public override string ToString()
-        {
-            return "FCOS";
-        }
-    }
-
-    public class FSineCosine : Instruction
-    {
-        public override string ToString()
-        {
-            return "FSINCOS";
-        }
-    }
-
-    public class FTangent : Instruction
-    {
-        public override string ToString()
-        {
-            return "FPTAN";
-        }
-
-    }
-
-    public class FArcTangent : Instruction
-    {
-        public override string ToString()
-        {
-            return "FPATAN";
-        }
-
-    }
-
-//- numeric ----------------------------------------------------------------
-
-    public class FChangeSign : Instruction
-    {
-        public override string ToString()
-        {
-            return "FCHS";
+            return "FPREM";
         }
     }
 
@@ -224,6 +310,14 @@ namespace Origami.Asm32
         public override string ToString()
         {
             return "FABS";
+        }
+    }
+
+    public class FChangeSign : Instruction
+    {
+        public override string ToString()
+        {
+            return "FCHS";
         }
     }
 
@@ -242,6 +336,13 @@ namespace Origami.Asm32
             return "FSCALE";
         }
     }
+    public class FSquareRoot : Instruction
+    {
+        public override string ToString()
+        {
+            return "FSQRT";
+        }
+    }
 
     public class FExtract : Instruction
     {
@@ -251,33 +352,7 @@ namespace Origami.Asm32
         }
     }
 
-    public class FRemainder : Instruction
-    {
-        public override string ToString()
-        {
-            return "FPREM";
-        }
-    }
-
-//- stack operations ----------------------------------------------------------
-
-    public class FIncrement : Instruction
-    {
-        public override string ToString()
-        {
-            return "FINCSTP";
-        }
-    }
-
-    public class FDecrement : Instruction
-    {
-        public override string ToString()
-        {
-            return "FDECSTP";
-        }
-    }
-
-//- comparison ----------------------------------------------------------------
+    //- comparison ----------------------------------------------------------------
 
     public class FCompare : Instruction
     {
@@ -331,7 +406,7 @@ namespace Origami.Asm32
 
         public override string ToString()
         {
-            return ((pop) ? "FICOMP" : "FICOM");            
+            return ((pop) ? "FICOMP" : "FICOM");
         }
     }
 
@@ -388,116 +463,75 @@ namespace Origami.Asm32
         }
     }
 
-//- data operations -----------------------------------------------------------
+    //- trig / log -------------------------------------------------------------
 
-    public class FExchange : Instruction
+    public class FSine : Instruction
     {
-        public FExchange(Operand _op1)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-        }
-
         public override string ToString()
         {
-            return "FXCH";
+            return "FSIN";
         }
     }
 
-    public class FConditionalMove : Instruction
+    public class FCosine : Instruction
     {
-        public enum CONDIT { MOVB, MOVNB, MOVE, MOVNE, MOVBE, MOVNBE, MOVU, MOVNU };
-
-        CONDIT condit;
-
-        public FConditionalMove(Operand _op1, Operand _op2, CONDIT _condit)
-            : base()
-        {
-            opcount = 2;
-            op1 = _op1;
-            op2 = _op2;
-            condit = _condit;
-        }
-
         public override string ToString()
         {
-            String result = "???";
-            switch (condit)
-            {
-                case CONDIT.MOVB:
-                    result = "FCMOVB";
-                    break;
-                case CONDIT.MOVNB:
-                    result = "FCMOVNB";
-                    break;
-                case CONDIT.MOVE:
-                    result = "FCMOVE";
-                    break;
-                case CONDIT.MOVNE:
-                    result = "FCMOVNE";
-                    break;
-                case CONDIT.MOVBE:
-                    result = "FCMOVBE";
-                    break;
-                case CONDIT.MOVNBE:
-                    result = "FCMOVNBE";
-                    break;
-                case CONDIT.MOVU:
-                    result = "FCMOVU";
-                    break;
-                case CONDIT.MOVNU:
-                    result = "FCMOVNU";
-                    break;
-            }
-            return result;
+            return "FCOS";
         }
     }
 
-    public class FLoad : Instruction
+    public class FSineCosine : Instruction
     {
-        public FLoad(Operand _op1)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-        }
-
         public override string ToString()
         {
-            return "FLD";
+            return "FSINCOS";
         }
     }
 
-    public class FLoadInteger : Instruction
+    public class FTangent : Instruction
     {
-        public FLoadInteger(Operand _op1)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-        }
-
         public override string ToString()
         {
-            return "FILD";
+            return "FPTAN";
+        }
+
+    }
+
+    public class FArcTangent : Instruction
+    {
+        public override string ToString()
+        {
+            return "FPATAN";
+        }
+
+    }
+
+    public class F2XM1 : Instruction
+    {
+        public override string ToString()
+        {
+            return "F2XM1";
         }
     }
 
-    public class FLoadBCD : Instruction
+    public class FYL2X : Instruction
     {
-        public FLoadBCD(Operand _op1)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-        }
-
         public override string ToString()
         {
-            return "FBLD";
+            return "FYL2X";
         }
     }
+
+    public class FYL2XP1 : Instruction
+    {
+        public override string ToString()
+        {
+            return "FYL2XP1";
+        }
+    }
+
+    //- constants -------------------------------------------------------------
 
     public class FLoadConstant : Instruction
     {
@@ -508,7 +542,7 @@ namespace Origami.Asm32
         public FLoadConstant(CONSTOP _op)
         {
             constOp = _op;
-                }
+        }
 
         public override string ToString()
         {
@@ -541,63 +575,28 @@ namespace Origami.Asm32
         }
     }
 
-    public class FStore : Instruction
-    {
-        bool pop;
-        
-        public FStore(Operand _op1, bool _pop)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-            pop = _pop;
-        }
+    //- control operations --------------------------------------------------------
 
+    public class FIncrement : Instruction
+    {
         public override string ToString()
         {
-            return (pop) ? "FSTP" : "FST";
+            return "FINCSTP";
         }
     }
 
-    public class FStoreInteger : Instruction
+    public class FDecrement : Instruction
     {
-        bool pop;
-        bool trunc;
-
-        public FStoreInteger(Operand _op1, bool _pop, bool _trunc)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-            pop = _pop;
-            trunc = _trunc;
-        }
-
         public override string ToString()
         {
-            return (trunc) ? "FISTTP" : (pop) ? "FISTP" : "FIST";
-        }
-    }
-
-    public class FStoreBCD : Instruction
-    {
-        public FStoreBCD(Operand _op1)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-        }
-
-        public override string ToString()
-        {
-            return "FBSTP";
+            return "FDECSTP";
         }
     }
 
     public class FFreeRegister : Instruction
     {
         bool pop;
-        
+
         public FFreeRegister(Operand _op1, bool _pop)
             : base()
         {
@@ -612,7 +611,6 @@ namespace Origami.Asm32
         }
     }
 
-//- control operations --------------------------------------------------------
 
     public class FInitialize : Instruction
     {
@@ -627,51 +625,6 @@ namespace Origami.Asm32
         public override string ToString()
         {
             return "FNCLEX";
-        }
-    }
-
-    public class FLoadEnvironment : Instruction
-    {
-        public FLoadEnvironment(Operand _op1)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-        }
-
-        public override string ToString()
-        {
-            return "FLDENV";
-        }
-    }
-
-    public class FStoreEnvironment : Instruction
-    {
-        public FStoreEnvironment(Operand _op1)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-        }
-
-        public override string ToString()
-        {
-            return "FNSTENV";
-        }
-    }
-
-    public class FLoadControlWord : Instruction
-    {
-        public FLoadControlWord(Operand _op1)
-            : base()
-        {
-            opcount = 1;
-            op1 = _op1;
-        }
-
-        public override string ToString()
-        {
-            return "FLDCW";
         }
     }
 
@@ -690,9 +643,9 @@ namespace Origami.Asm32
         }
     }
 
-    public class FStoreStatusWord : Instruction
+    public class FLoadControlWord : Instruction
     {
-        public FStoreStatusWord(Operand _op1)
+        public FLoadControlWord(Operand _op1)
             : base()
         {
             opcount = 1;
@@ -701,7 +654,37 @@ namespace Origami.Asm32
 
         public override string ToString()
         {
-            return "FNSTSW";
+            return "FLDCW";
+        }
+    }
+
+    public class FStoreEnvironment : Instruction
+    {
+        public FStoreEnvironment(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FNSTENV";
+        }
+    }
+
+    public class FLoadEnvironment : Instruction
+    {
+        public FLoadEnvironment(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FLDENV";
         }
     }
 
@@ -735,11 +718,25 @@ namespace Origami.Asm32
         }
     }
 
-//- miscellaneous -------------------------------------------------------------
+
+    public class FStoreStatusWord : Instruction
+    {
+        public FStoreStatusWord(Operand _op1)
+            : base()
+        {
+            opcount = 1;
+            op1 = _op1;
+        }
+
+        public override string ToString()
+        {
+            return "FNSTSW";
+        }
+    }
 
     public class FNoOp : Instruction
     {
-        public enum NOPTYPE {  FNOP, FENI, FDISI, FSETPM };
+        public enum NOPTYPE { FNOP, FENI, FDISI, FSETPM };
 
         NOPTYPE nopType;
 

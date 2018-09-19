@@ -34,8 +34,6 @@ namespace Origami.Asm32
         public uint codeaddr;           //cur addr of instr in mem
         public List<byte> instrBytes;    //the bytes that have been decoded for this instruction        
         
-        public String opcode;
-        public int opcount;
         public Operand op1;
         public Operand op2;
         public Operand op3;
@@ -56,8 +54,6 @@ namespace Origami.Asm32
             instrBytes = new List<byte>();            
 
             codeaddr = 0;
-            opcount = 0;
-            opcode = "";
 
             segprefix = Segment.SEG.DS;
             loopprefix = Instruction.LOOPPREFIX.None;
@@ -73,7 +69,6 @@ namespace Origami.Asm32
             instrBytes = new List<byte>();
 
             codeaddr = _codepos;
-            opcount = 0;
             segprefix = Segment.SEG.DS;
             loopprefix = Instruction.LOOPPREFIX.None;
             lockprefix = false;
@@ -151,13 +146,12 @@ namespace Origami.Asm32
                 instr = opfx(b);
             }
 
-            if (instr == null)
+            if (instr != null)
             {
-                instr = new UnknownOp();
+                instr.lockprefix = lockprefix;
+                instr.addr = codeaddr;
+                instr.bytes = instrBytes;
             }
-
-            instr.lockprefix = lockprefix;
-            instr.bytes = instrBytes;
 
             return instr;
         }
@@ -453,7 +447,7 @@ namespace Origami.Asm32
                     modrm = getNextByte();
                     op1 = getModrm(modrm, Operand.OPSIZE.Word);                         //Ew
                     op2 = getReg(Operand.OPSIZE.Word, (modrm % 0x40) / 0x08);           //Gw
-                    instr = new Arpl(op1, op2);
+                    instr = new AdjustRPL(op1, op2);
                     break;
 
                 case 0x68:
@@ -1030,8 +1024,7 @@ namespace Origami.Asm32
                             if (b == 0xf6)
                             {
                                 op1 = getModrm(modrm, Operand.OPSIZE.Byte);
-                                instr = new IntDivide(op1);
-                                opcount = 1;
+                                instr = new IntDivide(op1);                                
                             }
                             else
                             {
