@@ -146,12 +146,14 @@ namespace Origami.Asm32
                 instr = opfx(b);
             }
 
-            if (instr != null)
+            if (instr == null)
             {
-                instr.lockprefix = lockprefix;
-                instr.addr = codeaddr;
-                instr.bytes = instrBytes;
+                instr = new UnknownOp();
             }
+
+            instr.lockprefix = lockprefix;
+            instr.addr = codeaddr;
+            instr.bytes = instrBytes;
 
             return instr;
         }
@@ -253,13 +255,13 @@ namespace Origami.Asm32
             {
                 imm = new Immediate(getOfs(Operand.OPSIZE.Byte), Operand.OPSIZE.Byte);
                 imm.isOffset = true;
-                result.f3 = imm;
+                result.imm = imm;
             }
             if (mode == 0x02)
             {
                 imm = new Immediate(getOfs(Operand.OPSIZE.DWord), Operand.OPSIZE.DWord);
                 imm.isOffset = true;
-                result.f3 = imm;
+                result.imm = imm;
             }
 
             return result;

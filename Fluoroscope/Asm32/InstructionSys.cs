@@ -22,6 +22,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+//system instructions - section 5.1 Intel Architecture Manual
+
 namespace Origami.Asm32
 {
 

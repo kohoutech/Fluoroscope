@@ -170,8 +170,6 @@ namespace Fluoroscope
         }
 
         const int MAXINSTRLEN = 20;
-        const int BYTESFIELDWIDTH = 6;              //in bytes = each byte takes up 3 spaces
-        const int OPCODEFIELDWIDTH = 12;            //in actual spaces
 
         //format addr, instruction bytes & asm ops into a list of strings for all bytes in code section
         public void showSectionCode(Section section)
@@ -183,81 +181,20 @@ namespace Fluoroscope
 
                 uint srcpos = 0;
                 List<String> codeList = new List<String>();
-                StringBuilder asmLine = new StringBuilder();
+                String asmLine = null;
                 i32Disasm disasm = new i32Disasm(section.data, srcpos);
                 Instruction instr;
                 uint instrlen = 0;
-                List<byte> instrBytes;
 
                 uint codeaddr = section.imageBase + section.memloc;         //starting pos of code in mem, used for instr addrs
 
                 while (srcpos < (section.data.Length - MAXINSTRLEN))
                 {
-                    instr = disasm.getInstr(codeaddr);          //disasm bytes at cur source pos into next instruction
-                    instrBytes = instr.getBytes();              //the instruction's bytes
-                    instrlen = (uint)instrBytes.Count;          //determines how many bytes to format in line
+                    instr = disasm.getInstr(codeaddr);                  //disasm bytes at cur source pos into next instruction
+                    asmLine = instr.displayIntruction();                
+                    codeList.Add(asmLine);
 
-                    asmLine.Clear();
-
-                    //address field
-                    asmLine.Append("  " + codeaddr.ToString("X8") + ": ");
-
-                    //bytes field
-                    for (int i = 0; i < BYTESFIELDWIDTH; i++)
-                    {
-                        if (i < instrlen)
-                        {
-                            asmLine.Append(instrBytes[i].ToString("X2") + " ");
-                        }
-                        else
-                        {
-                            asmLine.Append("   ");          //extra space in field
-                        }
-                    }
-                    asmLine.Append(" ");                    //space over to opcode field
-
-                    //opcode field
-                    String opcode = instr.ToString();
-                    if (instr.lockprefix)
-                    {
-                        opcode = "LOCK " + opcode;
-                    }
-                    asmLine.Append(opcode);
-
-                    //operands field
-                    String spacer = (opcode.Length < OPCODEFIELDWIDTH) ?
-                        "            ".Substring(0, OPCODEFIELDWIDTH - opcode.Length) : "";
-
-                    if (instr.opcount > 0)
-                    {
-                        asmLine.Append(spacer + instr.op1.ToString());
-                    }
-                    if (instr.opcount > 1)
-                    {
-                        asmLine.Append("," + instr.op2.ToString());
-                    }
-                    if (instr.opcount > 2)
-                    {
-                        asmLine.Append("," + instr.op3.ToString());
-                    }
-
-                    //if all of instructions bytes were too long for one line, put the extra bytes on the next line
-                    if (instrlen > 6)
-                    {
-                        asmLine.AppendLine();
-                        asmLine.Append("            ");                 //blank addr field
-                        for (int i = 6; i < instrlen; i++)
-                        {
-                            asmLine.Append(instrBytes[i].ToString("X2"));    //extra bytes
-                            if (i < (instrlen - 1))
-                            {
-                                asmLine.Append(" ");
-                            }
-                        }
-                    }
-
-                    codeList.Add(asmLine.ToString());
-
+                    instrlen = (uint)instr.getBytes().Count;          //determines how many bytes to format in line
                     srcpos += instrlen;
                     codeaddr += instrlen;
                 }

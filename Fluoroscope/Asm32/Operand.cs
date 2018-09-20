@@ -116,24 +116,26 @@ namespace Origami.Asm32
 
 //- memory --------------------------------------------------------------------
 
+    //general format: <size> <seg>:[<r1> + <r2> * <mult) + <imm>]
+    //any of these terms is optional, as long as there's at least one
     public class Memory : Operand
     {
-        public Register f1;
-        public Register f2;
+        public Register r1;
+        public Register r2;
         public int mult;
-        public Immediate f3;
+        public Immediate imm;
         public OPSIZE size;
         public Segment.SEG seg;
 
-        public Memory(Register _f1, Register _f2, int _mult, Immediate _f3, OPSIZE _size, Segment.SEG _seg)
+        public Memory(Register _r1, Register _r2, int _mult, Immediate _imm, OPSIZE _size, Segment.SEG _seg)
         {
-            f1 = _f1;
-            f2 = _f2;
+            r1 = _r1;
+            r2 = _r2;
             mult = _mult;
-            f3 = _f3;
-            if (f3 != null)
+            imm = _imm;
+            if (imm != null)
             {
-                f3.isOffset = true;
+                imm.isOffset = true;
             }
             size = _size;
             seg = _seg;
@@ -179,25 +181,25 @@ namespace Origami.Asm32
             String result = "";
 
             //the address part
-            if (f1 != null)
+            if (r1 != null)
             {
-                result = f1.ToString();
+                result = r1.ToString();
             }
-            if (f2 != null)
+            if (r2 != null)
             {
                 if (result.Length > 0)
                 {
                     result += "+";
                 }
-                result += f2.ToString();
+                result += r2.ToString();
             }
             if (mult > 1)
             {
                 result += ("*" + mult.ToString());
             }
-            if ((f3 != null) && (f3.val > 0))
+            if ((imm != null) && (imm.val > 0))
             {
-                String immStr = f3.ToString();
+                String immStr = imm.ToString();
                 if ((result.Length > 0) && (immStr[0] != '-'))
                 {
                     result += "+";
@@ -207,7 +209,7 @@ namespace Origami.Asm32
 
             //the decorations
             result = "[" + result + "]";
-            if ((seg != Segment.SEG.DS) || (f1 == null && f2 == null))
+            if ((seg != Segment.SEG.DS) || (r1 == null && r2 == null))
             {
                 result = seg.ToString() + ":" + result;
             }

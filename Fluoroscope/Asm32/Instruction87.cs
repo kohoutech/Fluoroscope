@@ -22,6 +22,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+//fpu instructions - section 5.2 Intel Architecture Manual (2018)
+
 namespace Origami.Asm32
 {
 
