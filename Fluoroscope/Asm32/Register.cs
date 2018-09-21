@@ -30,10 +30,14 @@ namespace Origami.Asm32
         //public enum REGTYPE { Byte, Word, DWord, FPU, MMX, XMMX };
 
         public String name;
+        public OPSIZE size;
+        public int code;
 
-        public Register(String _name)
+        public Register(String _name, int _code)
         {
             name = _name;
+            size = OPSIZE.None;
+            code = _code;
         }
 
         public override string ToString()
@@ -51,14 +55,14 @@ namespace Origami.Asm32
         public enum REG8 { AL, CL, DL, BL, AH, CH, DH, BH };
         public REG8 reg8;
 
-        public static Register8 AL = new Register8(REG8.AL, "AL");
-        public static Register8 CL = new Register8(REG8.CL, "CL");
-        public static Register8 DL = new Register8(REG8.DL, "DL");
-        public static Register8 BL = new Register8(REG8.BL, "BL");
-        public static Register8 AH = new Register8(REG8.AH, "AH");
-        public static Register8 CH = new Register8(REG8.CH, "CH");
-        public static Register8 DH = new Register8(REG8.DH, "DH");
-        public static Register8 BH = new Register8(REG8.BH, "BH");
+        public static Register8 AL = new Register8(REG8.AL, "AL", 0);
+        public static Register8 CL = new Register8(REG8.CL, "CL", 1);
+        public static Register8 DL = new Register8(REG8.DL, "DL", 2);
+        public static Register8 BL = new Register8(REG8.BL, "BL", 3);
+        public static Register8 AH = new Register8(REG8.AH, "AH", 4);
+        public static Register8 CH = new Register8(REG8.CH, "CH", 5);
+        public static Register8 DH = new Register8(REG8.DH, "DH", 6);
+        public static Register8 BH = new Register8(REG8.BH, "BH", 7);
 
         static Register8()
         {
@@ -78,9 +82,10 @@ namespace Origami.Asm32
             return regs[i];
         }
 
-        Register8(REG8 r8, String name) : base(name)
+        Register8(REG8 r8, String name, int code) : base(name, code)
         {
             reg8 = r8;
+            size = OPSIZE.Byte;
         }
     }
 
@@ -93,14 +98,14 @@ namespace Origami.Asm32
         public enum REG16 { AX, CX, DX, BX, SP, BP, SI, DI };
         public REG16 reg16;
 
-        public static Register16 AX = new Register16(REG16.AX, "AX");
-        public static Register16 CX = new Register16(REG16.CX, "CX");
-        public static Register16 DX = new Register16(REG16.DX, "DX");
-        public static Register16 BX = new Register16(REG16.BX, "BX");
-        public static Register16 SP = new Register16(REG16.SP, "SP");
-        public static Register16 BP = new Register16(REG16.BP, "BP");
-        public static Register16 SI = new Register16(REG16.SI, "SI");
-        public static Register16 DI = new Register16(REG16.DI, "DI");
+        public static Register16 AX = new Register16(REG16.AX, "AX", 0);
+        public static Register16 CX = new Register16(REG16.CX, "CX", 1);
+        public static Register16 DX = new Register16(REG16.DX, "DX", 2);
+        public static Register16 BX = new Register16(REG16.BX, "BX", 3);
+        public static Register16 SP = new Register16(REG16.SP, "SP", 4);
+        public static Register16 BP = new Register16(REG16.BP, "BP", 5);
+        public static Register16 SI = new Register16(REG16.SI, "SI", 6);
+        public static Register16 DI = new Register16(REG16.DI, "DI", 7);
 
         static Register16()
         {
@@ -120,9 +125,10 @@ namespace Origami.Asm32
             return regs[i];
         }
 
-        public Register16(REG16 r16, String name) : base(name)
+        public Register16(REG16 r16, String name, int code) : base(name, code)
         {
             reg16 = r16;
+            size = OPSIZE.Word;
         }
     }
 
@@ -135,14 +141,14 @@ namespace Origami.Asm32
         public enum REG32 { EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI };
         public REG32 reg32;
 
-        public static Register32 EAX = new Register32(REG32.EAX, "EAX");
-        public static Register32 ECX = new Register32(REG32.ECX, "ECX");
-        public static Register32 EDX = new Register32(REG32.EDX, "EDX");
-        public static Register32 EBX = new Register32(REG32.EBX, "EBX");
-        public static Register32 ESP = new Register32(REG32.ESP, "ESP");
-        public static Register32 EBP = new Register32(REG32.EBP, "EBP");
-        public static Register32 ESI = new Register32(REG32.ESI, "ESI");
-        public static Register32 EDI = new Register32(REG32.EDI, "EDI");
+        public static Register32 EAX = new Register32(REG32.EAX, "EAX", 0);
+        public static Register32 ECX = new Register32(REG32.ECX, "ECX", 1);
+        public static Register32 EDX = new Register32(REG32.EDX, "EDX", 2);
+        public static Register32 EBX = new Register32(REG32.EBX, "EBX", 3);
+        public static Register32 ESP = new Register32(REG32.ESP, "ESP", 4);
+        public static Register32 EBP = new Register32(REG32.EBP, "EBP", 5);
+        public static Register32 ESI = new Register32(REG32.ESI, "ESI", 6);
+        public static Register32 EDI = new Register32(REG32.EDI, "EDI", 7);
 
         static Register32()
         {
@@ -162,9 +168,10 @@ namespace Origami.Asm32
             return regs[i];
         }
 
-        public Register32(REG32 r32, String name) : base (name)
+        public Register32(REG32 r32, String name, int code) : base (name, code)
         {
             reg32 = r32;
+            size = OPSIZE.DWord;
         }
     }
 
@@ -177,14 +184,14 @@ namespace Origami.Asm32
         public enum REG87 { ST0, ST1, ST2, ST3, ST4, ST5, ST6, ST7 };
         public REG87 reg87;
 
-        public static Register87 ST0 = new Register87(REG87.ST0, "st");
-        public static Register87 ST1 = new Register87(REG87.ST1, "st(1)");
-        public static Register87 ST2 = new Register87(REG87.ST2, "st(2)");
-        public static Register87 ST3 = new Register87(REG87.ST3, "st(3)");
-        public static Register87 ST4 = new Register87(REG87.ST4, "st(4)");
-        public static Register87 ST5 = new Register87(REG87.ST5, "st(5)");
-        public static Register87 ST6 = new Register87(REG87.ST6, "st(6)");
-        public static Register87 ST7 = new Register87(REG87.ST7, "st(7)");
+        public static Register87 ST0 = new Register87(REG87.ST0, "st", 0);
+        public static Register87 ST1 = new Register87(REG87.ST1, "st(1)", 1);
+        public static Register87 ST2 = new Register87(REG87.ST2, "st(2)", 2);
+        public static Register87 ST3 = new Register87(REG87.ST3, "st(3)", 3);
+        public static Register87 ST4 = new Register87(REG87.ST4, "st(4)", 4);
+        public static Register87 ST5 = new Register87(REG87.ST5, "st(5)", 5);
+        public static Register87 ST6 = new Register87(REG87.ST6, "st(6)", 6);
+        public static Register87 ST7 = new Register87(REG87.ST7, "st(7)", 7);
 
         static Register87()
         {
@@ -204,10 +211,11 @@ namespace Origami.Asm32
             return regs[i];
         }
 
-        public Register87(REG87 r87, String name)
-            : base(name)
+        public Register87(REG87 r87, String name, int code)
+            : base(name, code)
         {
             reg87 = r87;
+            size = OPSIZE.TByte;
         }
     }
 
@@ -220,14 +228,14 @@ namespace Origami.Asm32
         public enum REGMM { MM0, MM1, MM2, MM3, MM4, MM5, MM6, MM7};
         public REGMM regmm;
 
-        public static RegisterMM MM0 = new RegisterMM(REGMM.MM0, "MM0");
-        public static RegisterMM MM1 = new RegisterMM(REGMM.MM1, "MM1");
-        public static RegisterMM MM2 = new RegisterMM(REGMM.MM2, "MM2");
-        public static RegisterMM MM3 = new RegisterMM(REGMM.MM3, "MM3");
-        public static RegisterMM MM4 = new RegisterMM(REGMM.MM4, "MM4");
-        public static RegisterMM MM5 = new RegisterMM(REGMM.MM5, "MM5");
-        public static RegisterMM MM6 = new RegisterMM(REGMM.MM6, "MM6");
-        public static RegisterMM MM7 = new RegisterMM(REGMM.MM7, "MM7");
+        public static RegisterMM MM0 = new RegisterMM(REGMM.MM0, "MM0", 0);
+        public static RegisterMM MM1 = new RegisterMM(REGMM.MM1, "MM1", 1);
+        public static RegisterMM MM2 = new RegisterMM(REGMM.MM2, "MM2", 2);
+        public static RegisterMM MM3 = new RegisterMM(REGMM.MM3, "MM3", 3);
+        public static RegisterMM MM4 = new RegisterMM(REGMM.MM4, "MM4", 4);
+        public static RegisterMM MM5 = new RegisterMM(REGMM.MM5, "MM5", 5);
+        public static RegisterMM MM6 = new RegisterMM(REGMM.MM6, "MM6", 6);
+        public static RegisterMM MM7 = new RegisterMM(REGMM.MM7, "MM7", 7);
 
         static RegisterMM()
         {
@@ -247,9 +255,11 @@ namespace Origami.Asm32
             return regs[i];
         }
 
-        public RegisterMM(REGMM rmm, String name) : base (name)
+        public RegisterMM(REGMM rmm, String name, int code)
+            : base(name, code)
         {
             regmm = rmm;
+            size = OPSIZE.MM;
         }
     }
 
@@ -262,14 +272,14 @@ namespace Origami.Asm32
         public enum REGXMM { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
         public REGXMM regxmm;
 
-        public static RegisterXMM XMM0 = new RegisterXMM(REGXMM.XMM0, "XMM0");
-        public static RegisterXMM XMM1 = new RegisterXMM(REGXMM.XMM1, "XMM1");
-        public static RegisterXMM XMM2 = new RegisterXMM(REGXMM.XMM2, "XMM2");
-        public static RegisterXMM XMM3 = new RegisterXMM(REGXMM.XMM3, "XMM3");
-        public static RegisterXMM XMM4 = new RegisterXMM(REGXMM.XMM4, "XMM4");
-        public static RegisterXMM XMM5 = new RegisterXMM(REGXMM.XMM5, "XMM5");
-        public static RegisterXMM XMM6 = new RegisterXMM(REGXMM.XMM6, "XMM6");
-        public static RegisterXMM XMM7 = new RegisterXMM(REGXMM.XMM7, "XMM7");
+        public static RegisterXMM XMM0 = new RegisterXMM(REGXMM.XMM0, "XMM0", 0);
+        public static RegisterXMM XMM1 = new RegisterXMM(REGXMM.XMM1, "XMM1", 1);
+        public static RegisterXMM XMM2 = new RegisterXMM(REGXMM.XMM2, "XMM2", 2);
+        public static RegisterXMM XMM3 = new RegisterXMM(REGXMM.XMM3, "XMM3", 3);
+        public static RegisterXMM XMM4 = new RegisterXMM(REGXMM.XMM4, "XMM4", 4);
+        public static RegisterXMM XMM5 = new RegisterXMM(REGXMM.XMM5, "XMM5", 5);
+        public static RegisterXMM XMM6 = new RegisterXMM(REGXMM.XMM6, "XMM6", 6);
+        public static RegisterXMM XMM7 = new RegisterXMM(REGXMM.XMM7, "XMM7", 7);
 
         static RegisterXMM()
         {
@@ -289,10 +299,11 @@ namespace Origami.Asm32
             return regs[i];
         }
 
-        public RegisterXMM(REGXMM rxmm, String name)
-            : base(name)
+        public RegisterXMM(REGXMM rxmm, String name, int code)
+            : base(name, code)
         {
             regxmm = rxmm;
+            size = OPSIZE.XMM;
         }
     }
 
@@ -305,14 +316,14 @@ namespace Origami.Asm32
         public enum REGCR { CR0, CR1, CR2, CR3, CR4, CR5, CR6, CR7 };
         public REGCR regcr;
 
-        public static RegisterCR CR0 = new RegisterCR(REGCR.CR0, "CR0");
-        public static RegisterCR CR1 = new RegisterCR(REGCR.CR1, "CR1");
-        public static RegisterCR CR2 = new RegisterCR(REGCR.CR2, "CR2");
-        public static RegisterCR CR3 = new RegisterCR(REGCR.CR3, "CR3");
-        public static RegisterCR CR4 = new RegisterCR(REGCR.CR4, "CR4");
-        public static RegisterCR CR5 = new RegisterCR(REGCR.CR5, "CR5");
-        public static RegisterCR CR6 = new RegisterCR(REGCR.CR6, "CR6");
-        public static RegisterCR CR7 = new RegisterCR(REGCR.CR7, "CR7");
+        public static RegisterCR CR0 = new RegisterCR(REGCR.CR0, "CR0", 0);
+        public static RegisterCR CR1 = new RegisterCR(REGCR.CR1, "CR1", 1);
+        public static RegisterCR CR2 = new RegisterCR(REGCR.CR2, "CR2", 2);
+        public static RegisterCR CR3 = new RegisterCR(REGCR.CR3, "CR3", 3);
+        public static RegisterCR CR4 = new RegisterCR(REGCR.CR4, "CR4", 4);
+        public static RegisterCR CR5 = new RegisterCR(REGCR.CR5, "CR5", 5);
+        public static RegisterCR CR6 = new RegisterCR(REGCR.CR6, "CR6", 6);
+        public static RegisterCR CR7 = new RegisterCR(REGCR.CR7, "CR7", 7);
 
         static RegisterCR()
         {
@@ -332,10 +343,11 @@ namespace Origami.Asm32
             return regs[i];
         }
 
-        public RegisterCR(REGCR rcr, String name)
-            : base(name)
+        public RegisterCR(REGCR rcr, String name, int code)
+            : base(name, code)
         {
             regcr = rcr;
+            size = OPSIZE.CR;
         }
     }
 
@@ -348,14 +360,14 @@ namespace Origami.Asm32
         public enum REGDR { DR0, DR1, DR2, DR3, DR4, DR5, DR6, DR7};
         public REGDR regdr;
 
-        public static RegisterDR DR0 = new RegisterDR(REGDR.DR0, "DR0");
-        public static RegisterDR DR1 = new RegisterDR(REGDR.DR1, "DR1");
-        public static RegisterDR DR2 = new RegisterDR(REGDR.DR2, "DR2");
-        public static RegisterDR DR3 = new RegisterDR(REGDR.DR3, "DR3");
-        public static RegisterDR DR4 = new RegisterDR(REGDR.DR4, "DR4");
-        public static RegisterDR DR5 = new RegisterDR(REGDR.DR5, "DR5");
-        public static RegisterDR DR6 = new RegisterDR(REGDR.DR6, "DR6");
-        public static RegisterDR DR7 = new RegisterDR(REGDR.DR7, "DR7");
+        public static RegisterDR DR0 = new RegisterDR(REGDR.DR0, "DR0", 0);
+        public static RegisterDR DR1 = new RegisterDR(REGDR.DR1, "DR1", 1);
+        public static RegisterDR DR2 = new RegisterDR(REGDR.DR2, "DR2", 2);
+        public static RegisterDR DR3 = new RegisterDR(REGDR.DR3, "DR3", 3);
+        public static RegisterDR DR4 = new RegisterDR(REGDR.DR4, "DR4", 4);
+        public static RegisterDR DR5 = new RegisterDR(REGDR.DR5, "DR5", 5);
+        public static RegisterDR DR6 = new RegisterDR(REGDR.DR6, "DR6", 6);
+        public static RegisterDR DR7 = new RegisterDR(REGDR.DR7, "DR7", 7);
 
         static RegisterDR()
         {
@@ -372,13 +384,14 @@ namespace Origami.Asm32
 
         static public RegisterDR getReg(int i)
         {
-            return regs[i];
+            return regs[i];            
         }
 
-        public RegisterDR(REGDR rdr, String name)
-            : base(name)
+        public RegisterDR(REGDR rdr, String name, int code)
+            : base(name, code)
         {
             regdr = rdr;
+            size = OPSIZE.DR;
         }
     }
 
