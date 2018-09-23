@@ -24,9 +24,10 @@ using System.Text;
 
 namespace Origami.Asm32
 {
+    public enum OPSIZE { Byte, SignedByte, Word, DWord, QWord, FWord, TByte, MM, XMM, CR, DR, None };
+
     public class Operand
     {
-       public enum OPSIZE { Byte, SignedByte, Word, DWord, QWord, FWord, TByte, MM, XMM, CR, DR, None };
     }
 
 //- immediate ----------------------------------------------------------------
@@ -42,6 +43,33 @@ namespace Origami.Asm32
             val = _val;
             size = _size;
             isOffset = false;
+        }
+
+        public List<byte> getBytes()
+        {
+            List<byte> result = new List<byte>();
+            switch (size)
+            {
+                case OPSIZE.Byte:
+                    result.Add((byte)val);
+                    break;
+
+                case OPSIZE.DWord:
+                    uint _val = val;
+                    int a = (int)_val % 256;
+                    _val /= 256;
+                    int b = (int)_val % 256;
+                    _val /= 256;
+                    int c = (int)_val % 256;
+                    _val /= 256;
+                    int d = (int)_val % 256;
+                    result.Add((byte)a);
+                    result.Add((byte)b);
+                    result.Add((byte)c);
+                    result.Add((byte)d);
+                    break;
+            }
+            return result;
         }
 
         public override string ToString()
@@ -114,7 +142,7 @@ namespace Origami.Asm32
         }
     }
 
-//- memory --------------------------------------------------------------------
+    //- memory --------------------------------------------------------------------
 
     //general format: <size> <seg>:[<r1> + <r2> * <mult) + <imm>]
     //any of these terms is optional, as long as there's at least one
@@ -141,35 +169,84 @@ namespace Origami.Asm32
             seg = _seg;
         }
 
-        public String getSizePtrStr(Operand.OPSIZE size)
+        public List<byte> getBytes(out int mode, out int rm)
         {
-           //if (operandSizeOverride && (size == Operand.OPSIZE.DWord)) size = Operand.OPSIZE.Word;
+            List<byte> result = null;
+            mode = 0;
+            rm = 0;
+            if (r1 != null)
+            {
+                if (r2 == null)
+                {
+                    if (imm == null)
+                    {
+                        //r1
+                        rm = r1.code;       
+                    }
+                    else
+                    {
+                        //r1 + imm(8/32)
+                    }
+                }
+                else
+                {
+                    if (imm == null)        
+                    {
+                        //r1 + r2
+                        rm = 04;
+                        result.Add((byte)(05 + (r1.code * 8)));
+                        result.AddRange(imm.getBytes());
+                    }
+                    else
+                    {
+                        //r1 + r2 + imm(8/32)
+                    }
+                }
+            }
+            else
+            {
+                if (r2 != null)
+                {
+                    //r2 + imm(32)
+                }
+                else
+                {
+                    //imm(32)
+                }
+            }
+
+            return result;
+        }
+
+        public String getSizePtrStr(OPSIZE size)
+        {
+            //if (operandSizeOverride && (size == OPSIZE.DWord)) size = OPSIZE.Word;
 
             String result = "";
             switch (size)
             {
-                case Operand.OPSIZE.Byte:
+                case OPSIZE.Byte:
                     result = "byte ptr ";
                     break;
-                case Operand.OPSIZE.Word:
+                case OPSIZE.Word:
                     result = "word ptr ";
                     break;
-                case Operand.OPSIZE.DWord:
+                case OPSIZE.DWord:
                     result = "dword ptr ";
                     break;
-                case Operand.OPSIZE.QWord:
+                case OPSIZE.QWord:
                     result = "qword ptr ";
                     break;
-                case Operand.OPSIZE.FWord:
+                case OPSIZE.FWord:
                     result = "fword ptr ";
                     break;
-                case Operand.OPSIZE.TByte:
+                case OPSIZE.TByte:
                     result = "tbyte ptr ";
                     break;
-                case Operand.OPSIZE.MM:
+                case OPSIZE.MM:
                     result = "mmword ptr ";
                     break;
-                case Operand.OPSIZE.XMM:
+                case OPSIZE.XMM:
                     result = "xmmword ptr ";
                     break;
             }
@@ -217,5 +294,4 @@ namespace Origami.Asm32
             return result;
         }
     }
-
 }

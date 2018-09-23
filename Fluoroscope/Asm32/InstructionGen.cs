@@ -268,6 +268,20 @@ namespace Origami.Asm32
             carry = _carry;
         }
 
+        public override void generateBytes()
+        {
+            OpMode mode;
+            OPSIZE size;
+            byte[] opbyte = { 0x00, 0x00, 0x80, 0x00, 0x80 };
+            List<byte> modrm = getModrm(op1, op2, out mode, out size );
+            bytes = new List<byte>() { opbyte[(int)mode] };
+            if (size == OPSIZE.DWord)
+            {
+                bytes[0] += 1;
+            }
+            bytes.AddRange(modrm);
+        }
+
         public override string ToString()
         {
             return (carry ? "ADC" : "ADD");
@@ -475,6 +489,31 @@ namespace Origami.Asm32
             mode = _mode;
         }
 
+        public override void generateBytes()
+        {
+            byte bass;
+            switch (mode)
+            {
+                case MODE.Add:
+                    bytes = new List<byte>() { 0x37 };
+                    break;
+
+                case MODE.Sub:
+                    bytes = new List<byte>() { 0x3f };
+                    break;
+
+                case MODE.Mult:
+                    bass = (op1 != null) ? (byte)((Immediate)op1).val : (byte)0x0a;
+                    bytes = new List<byte>() { 0xd4, bass};
+                    break;
+
+                case MODE.Div:
+                    bass = (op1 != null) ? (byte)((Immediate)op1).val : (byte)0x0a;
+                    bytes = new List<byte>() { 0xd5, bass };
+                    break;
+            }
+        }
+
         String[] modes = { "AAA", "AAS", "AAM", "AAD" };
 
         public override string ToString()
@@ -499,6 +538,20 @@ namespace Origami.Asm32
             : base()
         {
             mode = _mode;
+        }
+
+        public override void generateBytes()
+        {
+            switch (mode)
+            {
+                case MODE.Add:
+                    bytes = new List<byte>() { 0x27 };
+                    break;
+
+                case MODE.Sub:
+                    bytes = new List<byte>() { 0x2f };
+                    break;
+            }
         }
 
         public override string ToString()
@@ -873,7 +926,7 @@ namespace Origami.Asm32
             : base()
         {
             opcount = 1;
-            op1 = new Immediate(3, Operand.OPSIZE.Byte);
+            op1 = new Immediate(3, OPSIZE.Byte);
         }
 
         public override string ToString()

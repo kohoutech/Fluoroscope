@@ -52,9 +52,46 @@ namespace Origami.Asm32
 
         }
 
-        public List<byte> getModrm(Operand op1, Operand op2)
+        public enum OpMode { REGREG, REGMEM, REGIMM, MEMREG, MEMIMM }
+
+        public List<byte> getModrm(Operand op1, Operand op2, out OpMode opmode, out OPSIZE size)
         {
-            return null;
+            int mode;
+            int reg;
+            int rm;
+            List<byte> bytes = new List<byte>();
+
+            if (op1 is Register)
+            {
+                size = ((Register)op1).size;
+                if (op2 is Register)
+                {
+                    opmode = OpMode.REGREG;
+                }
+                else if (op2 is Memory)
+                {
+                    opmode = OpMode.REGMEM;
+                }
+                else            //Op2 is immediate
+                {
+                    opmode = OpMode.REGIMM;
+                }
+            }
+            else            //Op1 is memory
+            {
+                size = ((Memory)op1).size;                
+                if (op2 is Register)
+                {
+                    opmode = OpMode.MEMREG;
+                    reg = ((Register)op2).code;
+                }
+                else            //Op2 is immediate
+                {
+                    opmode = OpMode.MEMIMM;
+                }
+            }
+
+            return bytes;
         }
 
         public virtual void generateBytes()
