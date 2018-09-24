@@ -159,6 +159,17 @@ namespace Origami.Asm32
             op2 = _op2;
         }
 
+        public override void generateBytes()
+        {
+            OpMode mode;
+            OPSIZE size;
+
+            bytes = new List<byte>();
+            List<byte> modrm = getModrm(op1, op2, out mode, out size);
+            bytes.Add(0x63);
+            bytes.AddRange(modrm);
+        }
+
         public override string ToString()
         {
             return "ARPL";

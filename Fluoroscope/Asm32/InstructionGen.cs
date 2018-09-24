@@ -166,6 +166,28 @@ namespace Origami.Asm32
             op1 = _op1;
         }
 
+        public override void generateBytes()
+        {
+            bytes = new List<byte>();
+            if (op1 is Segment)
+            {
+                if (((Segment)op1).seg <= Segment.SEG.DS)
+                {
+                    bytes.Add((byte)(0x06 + ((int)((Segment)op1).seg * 8)));
+                }
+            }
+            else if (op1 is Register)
+            {
+                bytes.Add((byte)(0x50 + ((Register)op1).code));
+            }
+            else if (op1 is Immediate)
+            {
+                Immediate imm = (Immediate)op1;
+                bytes.Add((byte)(imm.size == OPSIZE.DWord ? 0x68 : 0x6a));
+                bytes.AddRange(imm.getBytes());
+            }
+        }
+
         public override string ToString()
         {
             return "PUSH";
@@ -181,6 +203,22 @@ namespace Origami.Asm32
             op1 = _op1;
         }
 
+        public override void generateBytes()
+        {
+            bytes = new List<byte>();
+            if (op1 is Segment)
+            {
+                if (((Segment)op1).seg <= Segment.SEG.DS)
+                {
+                    bytes.Add((byte)(0x07 + ((int)((Segment)op1).seg * 8)));
+                }
+            }
+            else if (op1 is Register)
+            {
+                bytes.Add((byte)(0x58 + ((Register)op1).code));
+            }
+        }
+
         public override string ToString()
         {
             return "POP";
@@ -192,6 +230,11 @@ namespace Origami.Asm32
         public PushRegisters()
             : base()
         {
+        }
+
+        public override void generateBytes()
+        {
+            bytes = new List<byte>() { 0x60 };
         }
 
         public override string ToString()
@@ -206,6 +249,12 @@ namespace Origami.Asm32
             : base()
         {
         }
+
+        public override void generateBytes()
+        {
+            bytes = new List<byte>() { 0x61 };
+        }
+
 
         public override string ToString()
         {
@@ -272,14 +321,46 @@ namespace Origami.Asm32
         {
             OpMode mode;
             OPSIZE size;
-            byte[] opbyte = { 0x00, 0x00, 0x80, 0x00, 0x80 };
-            List<byte> modrm = getModrm(op1, op2, out mode, out size );
-            bytes = new List<byte>() { opbyte[(int)mode] };
-            if (size == OPSIZE.DWord)
+
+            bytes = new List<byte>();
+            if (op2 is Immediate)
             {
-                bytes[0] += 1;
+                if (op1 is Register)
+                {
+                    if (((Register)op1).code == 0)
+                    {
+                        bytes.Add((byte)((((Register)op1).size == OPSIZE.Byte) ? 0x4 : 0x5));
+                        if (carry)
+                        {
+                            bytes[0] += 0x10;
+                        }
+                        bytes.AddRange(((Immediate)op2).getBytes());
+                    }
+                    else
+                    {
+                        //80 - 83
+                    }
+                }
+                else
+                {
+                    //80 - 83
+                }
             }
-            bytes.AddRange(modrm);
+            else
+            {
+                byte[] opbyte = { 0x00, 0x02, 0x00 };
+                List<byte> modrm = getModrm(op1, op2, out mode, out size);
+                bytes.Add(opbyte[(int)mode]);
+                if (carry)
+                {
+                    bytes[0] += 0x10;
+                }
+                if (size == OPSIZE.DWord)
+                {
+                    bytes[0] += 1;
+                }
+                bytes.AddRange(modrm);
+            }
         }
 
         public override string ToString()
@@ -300,6 +381,52 @@ namespace Origami.Asm32
             op1 = _op1;
             op2 = _op2;
             borrow = _borrow;
+        }
+
+        public override void generateBytes()
+        {
+            OpMode mode;
+            OPSIZE size;
+
+            bytes = new List<byte>();
+            if (op2 is Immediate)
+            {
+                if (op1 is Register)
+                {
+                    if (((Register)op1).code == 0)
+                    {
+                        bytes.Add((byte)((((Register)op1).size == OPSIZE.Byte) ? 0x1c : 0x1d));
+                        if (!borrow)
+                        {
+                            bytes[0] += 0x10;
+                        }
+                        bytes.AddRange(((Immediate)op2).getBytes());
+                    }
+                    else
+                    {
+                        //80 - 83
+                    }
+                }
+                else
+                {
+                    //80 - 83
+                }
+            }
+            else
+            {
+                byte[] opbyte = { 0x18, 0x1a, 0x18 };
+                List<byte> modrm = getModrm(op1, op2, out mode, out size);
+                bytes.Add(opbyte[(int)mode]);
+                if (!borrow)
+                {
+                    bytes[0] += 0x10;
+                }
+                if (size == OPSIZE.DWord)
+                {
+                    bytes[0] += 1;
+                }
+                bytes.AddRange(modrm);
+            }
         }
 
         public override string ToString()
@@ -333,6 +460,22 @@ namespace Origami.Asm32
             op1 = _op1;
             op2 = _op2;
             op3 = _op3;
+        }
+
+        public override void generateBytes()
+        {
+            OpMode mode;
+            OPSIZE size;
+
+            bytes = new List<byte>();
+            if (op3 != null)
+            {
+                Immediate imm = (Immediate)op3;
+                bytes.Add((byte)(imm.size == OPSIZE.DWord ? 0x69 : 0x6b));
+                List<byte> modrm = getModrm(op1, op2, out mode, out size);
+                bytes.AddRange(modrm);
+                bytes.AddRange(imm.getBytes());
+            }
         }
 
         public override string ToString()
@@ -409,6 +552,19 @@ namespace Origami.Asm32
             op1 = _op1;
         }
 
+        public override void generateBytes()
+        {
+            bytes = new List<byte>();
+            if (op1 is Register)
+            {
+                bytes.Add((byte)(0x40 + ((Register)op1).code));
+            }
+            else
+            {
+                //op1 is memory - ff
+            }
+        }
+
         public override string ToString()
         {
             return "INC";
@@ -425,7 +581,20 @@ namespace Origami.Asm32
             op1 = _op1;
         }
 
-        public override string ToString()
+        public override void generateBytes()
+        {
+            bytes = new List<byte>();
+            if (op1 is Register)
+            {
+                bytes.Add((byte)(0x48 + ((Register)op1).code));
+            }
+            else
+            {
+                //op1 is memory - ff
+            }
+        }
+
+            public override string ToString()
         {
             return "DEC";
         }
@@ -456,6 +625,44 @@ namespace Origami.Asm32
             opcount = 2;
             op1 = _op1;
             op2 = _op2;
+        }
+
+        public override void generateBytes()
+        {
+            OpMode mode;
+            OPSIZE size;
+
+            bytes = new List<byte>();
+            if (op2 is Immediate)
+            {
+                if (op1 is Register)
+                {
+                    if (((Register)op1).code == 0)
+                    {
+                        bytes.Add((byte)((((Register)op1).size == OPSIZE.Byte) ? 0x3c : 0x3d));
+                        bytes.AddRange(((Immediate)op2).getBytes());
+                    }
+                    else
+                    {
+                        //80 - 83
+                    }
+                }
+                else
+                {
+                    //80 - 83
+                }
+            }
+            else
+            {
+                byte[] opbyte = { 0x38, 0x3a, 0x38 };
+                List<byte> modrm = getModrm(op1, op2, out mode, out size);
+                bytes.Add(opbyte[(int)mode]);
+                if (size == OPSIZE.DWord)
+                {
+                    bytes[0] += 1;
+                }
+                bytes.AddRange(modrm);
+            }
         }
 
         public override string ToString()
@@ -573,6 +780,44 @@ namespace Origami.Asm32
             op2 = _op2;
         }
 
+        public override void generateBytes()
+        {
+            OpMode mode;
+            OPSIZE size;
+
+            bytes = new List<byte>();
+            if (op2 is Immediate)
+            {
+                if (op1 is Register)
+                {
+                    if (((Register)op1).code == 0)
+                    {
+                        bytes.Add((byte)((((Register)op1).size == OPSIZE.Byte) ? 0x24 : 0x25));
+                        bytes.AddRange(((Immediate)op2).getBytes());
+                    }
+                    else
+                    {
+                        //80 - 83
+                    }
+                }
+                else
+                {
+                    //80 - 83
+                }
+            }
+            else
+            {
+                byte[] opbyte = { 0x20, 0x22, 0x20 };
+                List<byte> modrm = getModrm(op1, op2, out mode, out size);
+                bytes.Add(opbyte[(int)mode]);
+                if (size == OPSIZE.DWord)
+                {
+                    bytes[0] += 1;
+                }
+                bytes.AddRange(modrm);
+            }
+        }
+
         public override string ToString()
         {
             return "AND";
@@ -591,6 +836,44 @@ namespace Origami.Asm32
             op2 = _op2;
         }
 
+        public override void generateBytes()
+        {
+            OpMode mode;
+            OPSIZE size;
+
+            bytes = new List<byte>();
+            if (op2 is Immediate)
+            {
+                if (op1 is Register)
+                {
+                    if (((Register)op1).code == 0)
+                    {
+                        bytes.Add((byte)((((Register)op1).size == OPSIZE.Byte) ? 0xc : 0xd));
+                        bytes.AddRange(((Immediate)op2).getBytes());
+                    }
+                    else
+                    {
+                        //80 - 83
+                    }
+                }
+                else
+                {
+                    //80 - 83
+                }
+            }
+            else
+            {
+                byte[] opbyte = { 0x08, 0x0a, 0x08 };
+                List<byte> modrm = getModrm(op1, op2, out mode, out size);
+                bytes.Add(opbyte[(int)mode]);
+                if (size == OPSIZE.DWord)
+                {
+                    bytes[0] += 1;
+                }
+                bytes.AddRange(modrm);
+            }
+        }
+
         public override string ToString()
         {
             return "OR";
@@ -606,6 +889,44 @@ namespace Origami.Asm32
             opcount = 2;
             op1 = _op1;
             op2 = _op2;
+        }
+
+        public override void generateBytes()
+        {
+            OpMode mode;
+            OPSIZE size;
+
+            bytes = new List<byte>();
+            if (op2 is Immediate)
+            {
+                if (op1 is Register)
+                {
+                    if (((Register)op1).code == 0)
+                    {
+                        bytes.Add((byte)((((Register)op1).size == OPSIZE.Byte) ? 0x34 : 0x35));
+                        bytes.AddRange(((Immediate)op2).getBytes());
+                    }
+                    else
+                    {
+                        //80 - 83
+                    }
+                }
+                else
+                {
+                    //80 - 83
+                }
+            }
+            else
+            {
+                byte[] opbyte = { 0x30, 0x32, 0x30 };
+                List<byte> modrm = getModrm(op1, op2, out mode, out size);
+                bytes.Add(opbyte[(int)mode]);
+                if (size == OPSIZE.DWord)
+                {
+                    bytes[0] += 1;
+                }
+                bytes.AddRange(modrm);
+            }
         }
 
         public override string ToString()
@@ -958,6 +1279,17 @@ namespace Origami.Asm32
             op2 = _op2;
         }
 
+        public override void generateBytes()
+        {
+            OpMode mode;
+            OPSIZE size;
+
+            bytes = new List<byte>();
+            List<byte> modrm = getModrm(op1, op2, out mode, out size);
+            bytes.Add(0x62);
+            bytes.AddRange(modrm);
+        }
+        
         public override string ToString()
         {
             return "BOUND";

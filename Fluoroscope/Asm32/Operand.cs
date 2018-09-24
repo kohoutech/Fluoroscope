@@ -51,6 +51,7 @@ namespace Origami.Asm32
             switch (size)
             {
                 case OPSIZE.Byte:
+                case OPSIZE.SignedByte:
                     result.Add((byte)val);
                     break;
 
@@ -144,18 +145,27 @@ namespace Origami.Asm32
 
     //- memory --------------------------------------------------------------------
 
-    //general format: <size> <seg>:[<r1> + <r2> * <mult) + <imm>]
-    //any of these terms is optional, as long as there's at least one
+    //general format: <size> <seg>:[<r1> + <r2> * <mult> + <imm>]
+    //six possible combinations:
+    //r1
+    //r1 + imm(8/32)
+    //r1 + r2(*mult)
+    //r1 + r2(*mult) + imm(8/32)
+    //r2(*mult) + imm(8/32)
+    //imm(8/32)
+
     public class Memory : Operand
     {
-        public Register r1;
-        public Register r2;
-        public int mult;
-        public Immediate imm;
+        public enum Mult { NONE, X2, X4, X8 };
+
         public OPSIZE size;
         public Segment.SEG seg;
+        public Register r1;
+        public Register r2;
+        public Mult mult;
+        public Immediate imm;
 
-        public Memory(Register _r1, Register _r2, int _mult, Immediate _imm, OPSIZE _size, Segment.SEG _seg)
+        public Memory(Register _r1, Register _r2, Mult _mult, Immediate _imm, OPSIZE _size, Segment.SEG _seg)
         {
             r1 = _r1;
             r2 = _r2;
@@ -171,21 +181,25 @@ namespace Origami.Asm32
 
         public List<byte> getBytes(out int mode, out int rm)
         {
-            List<byte> result = null;
+            List<byte> bytes = new List<byte>();
             mode = 0;
             rm = 0;
             if (r1 != null)
             {
                 if (r2 == null)
                 {
-                    if (imm == null)
+                    //r1
+                    rm = r1.code;       //0,1,2,3,6,7 - 5 (ebp) not valid
+                    if (rm == 4)
                     {
-                        //r1
-                        rm = r1.code;       
+                        bytes.Add(0x24);    //04 24 = esp
                     }
-                    else
+                    if (imm != null)
                     {
                         //r1 + imm(8/32)
+                        rm = r1.code;
+                        mode = (imm.size == OPSIZE.Byte) ? 1 : 2;
+                        bytes.AddRange(imm.getBytes());
                     }
                 }
                 else
@@ -193,13 +207,17 @@ namespace Origami.Asm32
                     if (imm == null)        
                     {
                         //r1 + r2
-                        rm = 04;
-                        result.Add((byte)(05 + (r1.code * 8)));
-                        result.AddRange(imm.getBytes());
+                        rm = 4;
+                        bytes.Add((byte)((r2.code * 8) + (r1.code) + ((int)mult * 0x40)));
                     }
                     else
                     {
                         //r1 + r2 + imm(8/32)
+                        rm = 4;
+                        mode = (imm.size == OPSIZE.Byte) ? 1 : 2;
+                        bytes.Add((byte)((r2.code * 8) + (r1.code) + ((int)mult * 0x40)));
+                        bytes.AddRange(imm.getBytes());
+
                     }
                 }
             }
@@ -208,14 +226,19 @@ namespace Origami.Asm32
                 if (r2 != null)
                 {
                     //r2 + imm(32)
+                    rm = 4;
+                    bytes.Add((byte)(05 + (r2.code * 8) + ((int)mult * 0x40)));
+                    bytes.AddRange(imm.getBytes());
                 }
                 else
                 {
                     //imm(32)
+                    rm = 5;
+                    bytes.AddRange(imm.getBytes());
                 }
             }
 
-            return result;
+            return bytes;
         }
 
         public String getSizePtrStr(OPSIZE size)
@@ -255,6 +278,7 @@ namespace Origami.Asm32
 
         public override string ToString()
         {
+            String[] multFactor = { "", "*2", "*4", "*8" };
             String result = "";
 
             //the address part
@@ -262,18 +286,15 @@ namespace Origami.Asm32
             {
                 result = r1.ToString();
             }
+
             if (r2 != null)
             {
                 if (result.Length > 0)
                 {
                     result += "+";
                 }
-                result += r2.ToString();
-            }
-            if (mult > 1)
-            {
-                result += ("*" + mult.ToString());
-            }
+                result = result + r2.ToString() + multFactor[(int)mult];
+            }            
             if ((imm != null) && (imm.val > 0))
             {
                 String immStr = imm.ToString();

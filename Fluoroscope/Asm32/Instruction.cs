@@ -52,53 +52,61 @@ namespace Origami.Asm32
 
         }
 
-        public enum OpMode { REGREG, REGMEM, REGIMM, MEMREG, MEMIMM }
+//- convert instr to its opcode byte representation ---------------------------
+
+        public enum OpMode { REGREG, REGMEM, MEMREG}
 
         public List<byte> getModrm(Operand op1, Operand op2, out OpMode opmode, out OPSIZE size)
         {
             int mode;
             int reg;
             int rm;
-            List<byte> bytes = new List<byte>();
+            List<byte> result = new List<byte>();
+            List<byte> membytes = null;
 
             if (op1 is Register)
             {
                 size = ((Register)op1).size;
                 if (op2 is Register)
                 {
-                    opmode = OpMode.REGREG;
+                    opmode = OpMode.REGREG;         //register, register
+                    mode = 3;
+                    rm = ((Register)op1).code;
+                    reg = ((Register)op2).code;
                 }
-                else if (op2 is Memory)
+                else
                 {
-                    opmode = OpMode.REGMEM;
-                }
-                else            //Op2 is immediate
-                {
-                    opmode = OpMode.REGIMM;
+                    opmode = OpMode.REGMEM;                                 //register, memory
+                    reg = ((Register)op1).code;
+                    membytes = ((Memory)op2).getBytes(out mode, out rm);
                 }
             }
             else            //Op1 is memory
             {
-                size = ((Memory)op1).size;                
-                if (op2 is Register)
-                {
-                    opmode = OpMode.MEMREG;
-                    reg = ((Register)op2).code;
-                }
-                else            //Op2 is immediate
-                {
-                    opmode = OpMode.MEMIMM;
-                }
+                opmode = OpMode.MEMREG;             //memory, register
+                size = ((Memory)op1).size;
+                membytes = ((Memory)op1).getBytes(out mode, out rm);
+                reg = ((Register)op2).code;
             }
 
-            return bytes;
+            byte b = (byte)(mode * 0x40 + reg * 8 + rm);        //the modrm byte
+            result.Add(b);
+            if (membytes != null)
+            {
+                result.AddRange(membytes);           //add any additional memory op bytes
+            }
+            return result;
         }
 
+        //base generate bytes method, every instr will override this
         public virtual void generateBytes()
         {
-            bytes = new List<byte>() { 0xFF, 0xFF, 0xFF };
+            bytes = new List<byte>() { 0xd6 };      //d6 is not a defined opcode
         }
 
+        //returns the bytes if we already have them, else it generates them first
+        //if this intruction is from a disassmbly, we keep the original bytes is was disassembled from
+        //instead of genertaing new ones, which may be different (but equivalent) to the original ones
         public List<byte> getBytes()
         {
             if (bytes == null)
@@ -110,12 +118,37 @@ namespace Origami.Asm32
 
 //- display -------------------------------------------------------------------
 
-        //returns instruction address, bytes, opcode and operands formated in Intel syntax
-
         const int BYTESFIELDWIDTH = 6;              //in bytes = each byte takes up 3 spaces
         const int OPCODEFIELDWIDTH = 12;            //in actual spaces
 
-        public String displayIntruction()
+        //returns opcode and operands formated in Intel syntax
+        public string displayIntruction()
+        {
+            //opcode field
+            String result = ToString();
+            if (lockprefix)
+            {
+                result = "LOCK " + result;
+            }
+
+            //operands field
+            if (opcount > 0)
+            {
+                result = result + " " + op1.ToString();
+            }
+            if (opcount > 1)
+            {
+                result = result + "," + op2.ToString();
+            }
+            if (opcount > 2)
+            {
+                result = result + "," + op3.ToString();
+            }
+            return result;
+        }
+
+        //returns instruction address, bytes, opcode and operands formated in Intel syntax
+        public String displayIntructionLine()
         {
             StringBuilder asmLine = new StringBuilder();
             uint instrlen = (uint)bytes.Count;
@@ -137,30 +170,7 @@ namespace Origami.Asm32
             }
             asmLine.Append(" ");                    //space over to opcode field
 
-            //opcode field
-            String opcode = ToString();
-            if (lockprefix)
-            {
-                opcode = "LOCK " + opcode;
-            }
-            asmLine.Append(opcode);
-
-            //operands field
-            String spacer = (opcode.Length < OPCODEFIELDWIDTH) ?
-                "            ".Substring(0, OPCODEFIELDWIDTH - opcode.Length) : "";
-
-            if (opcount > 0)
-            {
-                asmLine.Append(spacer + op1.ToString());
-            }
-            if (opcount > 1)
-            {
-                asmLine.Append("," + op2.ToString());
-            }
-            if (opcount > 2)
-            {
-                asmLine.Append("," + op3.ToString());
-            }
+            asmLine.Append(displayIntruction());    //add opcode & operands
 
             //if all of instructions bytes were too long for one line, put the extra bytes on the next line
             if (instrlen > 6)

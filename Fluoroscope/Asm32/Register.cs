@@ -431,7 +431,7 @@ namespace Origami.Asm32
         public Segment(SEG _seg, String _name)
         {
             seg = _seg;
-            name = _name;
+            name = _name;        
         }
 
         public override string ToString()
