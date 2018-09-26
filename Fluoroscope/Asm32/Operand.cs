@@ -28,6 +28,35 @@ namespace Origami.Asm32
 
     public class Operand
     {
+
+        //helper methods
+        public static List<byte> WordToBytes(uint w)
+        {
+            List<byte> result = new List<byte>();
+            uint a = w % 256;
+            w /= 256;
+            uint b = w % 256;
+            result.Add((byte)a);
+            result.Add((byte)b);
+            return result;
+        }
+
+        public static List<byte> DWordToBytes(uint dw)
+        {
+            List<byte> result = new List<byte>();
+            uint a = dw % 256;
+            dw /= 256;
+            uint b = dw % 256;
+            dw /= 256;
+            uint c = dw % 256;
+            dw /= 256;
+            uint d = dw % 256;
+            result.Add((byte)a);
+            result.Add((byte)b);
+            result.Add((byte)c);
+            result.Add((byte)d);            
+            return result;
+        }
     }
 
 //- immediate ----------------------------------------------------------------
@@ -56,18 +85,7 @@ namespace Origami.Asm32
                     break;
 
                 case OPSIZE.DWord:
-                    uint _val = val;
-                    int a = (int)_val % 256;
-                    _val /= 256;
-                    int b = (int)_val % 256;
-                    _val /= 256;
-                    int c = (int)_val % 256;
-                    _val /= 256;
-                    int d = (int)_val % 256;
-                    result.Add((byte)a);
-                    result.Add((byte)b);
-                    result.Add((byte)c);
-                    result.Add((byte)d);
+                    result = DWordToBytes(val);
                     break;
             }
             return result;
@@ -135,6 +153,14 @@ namespace Origami.Asm32
         {
             seg = _seg;
             addr = _addr;            
+        }
+
+        public List<byte> getBytes()
+        {
+            List<byte> result = new List<byte>();
+            result.AddRange(DWordToBytes(addr));
+            result.AddRange(WordToBytes(seg));
+            return result;
         }
 
         public override string ToString()
