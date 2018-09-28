@@ -190,4 +190,19 @@ namespace Origami.Asm32
             return asmLine.ToString();
         }
     }
+
+    //for byte sequences that don't match any known instruction
+    public class UnknownOp : Instruction
+    {
+        public UnknownOp()
+            : base()
+        {
+        }
+
+        public override string ToString()
+        {
+            return "???";
+        }
+    }
+
 }

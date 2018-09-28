@@ -277,6 +277,12 @@ namespace Origami.Asm32
         {
         }
 
+        public override void generateBytes()
+        {
+            bytes = new List<byte>() { 0xf4 };
+        }
+
+
         public override string ToString()
         {
             return "HALT";

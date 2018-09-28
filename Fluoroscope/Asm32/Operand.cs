@@ -84,6 +84,10 @@ namespace Origami.Asm32
                     result.Add((byte)val);
                     break;
 
+                case OPSIZE.Word:
+                    result = WordToBytes(val);
+                    break;
+
                 case OPSIZE.DWord:
                     result = DWordToBytes(val);
                     break;
@@ -129,13 +133,33 @@ namespace Origami.Asm32
         }
     }
 
-    public class Address : Operand
+//- address -------------------------------------------------------------------
+
+    public class Relative : Operand
     {
         public uint val;
+        public uint ofs;
+        public OPSIZE size;
 
-        public Address(uint _val)
+        public Relative(uint _val, uint _ofs, OPSIZE _size)
         {
             val = _val;
+            ofs = _ofs;
+            size = _size;
+        }
+
+        public List<byte> getOffset()
+        {
+            List<byte> result;
+            if (size == OPSIZE.Byte)
+            {
+                result = new List<byte>(){(byte)ofs};
+            }
+            else
+            {
+                result = DWordToBytes(ofs);
+            }
+            return result;
         }
 
         public override string ToString()
@@ -169,7 +193,7 @@ namespace Origami.Asm32
         }
     }
 
-    //- memory --------------------------------------------------------------------
+    //- memory reference ------------------------------------------------------
 
     //general format: <size> <seg>:[<r1> + <r2> * <mult> + <imm>]
     //six possible combinations:
@@ -203,6 +227,11 @@ namespace Origami.Asm32
             }
             size = _size;
             seg = _seg;
+        }
+
+        public bool isImmediate()
+        {
+            return (r1 == null && r2 == null & imm != null);
         }
 
         public List<byte> getBytes(out int mode, out int rm)
