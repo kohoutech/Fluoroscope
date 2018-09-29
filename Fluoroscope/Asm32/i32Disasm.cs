@@ -1634,7 +1634,7 @@ namespace Origami.Asm32
                     instr = new FExtract();
                     break;
                 case 0x15:
-                    instr = new FRemainder();
+                    instr = new FRemainder(FRemainder.MODE.ROUND1);
                     break;
                 case 0x16:
                     instr = new FDecrement();
@@ -1643,7 +1643,7 @@ namespace Origami.Asm32
                     instr = new FIncrement();
                     break;
                 case 0x18:
-                    instr = new FRemainder();
+                    instr = new FRemainder(FRemainder.MODE.ROUND0);
                     break;
                 case 0x19:
                     instr = new FYL2XP1();
