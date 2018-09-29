@@ -325,6 +325,15 @@ namespace Origami.Asm32
                 bytes.Add((byte)(imm.size == OPSIZE.DWord ? 0x68 : 0x6a));
                 bytes.AddRange(imm.getBytes());
             }
+            else
+            {
+                int mod;
+                int rm;
+                bytes.Add(0xff);
+                List<byte> membytes = ((Memory)op1).getBytes(out mod, out rm);
+                bytes.Add((byte)(mod * 0x40 + + 0x30 + rm));
+                bytes.AddRange(membytes);
+            }
         }
 
         public override string ToString()
@@ -836,13 +845,23 @@ namespace Origami.Asm32
             bytes = new List<byte>();
             if (op1 is Register)
             {
-                bytes.Add((byte)(0x40 + ((Register)op1).code));
+                Register reg1 = (Register)op1;
+                if (reg1.size == OPSIZE.DWord)
+                {
+                    bytes.Add((byte)(0x40 + ((Register)op1).code));
+                }
+                else
+                {
+                    bytes.Add(0xfe);
+                    bytes.Add((byte)(0xc0 + reg1.code));
+                }
+
             }
             else
             {
                 int mod;
                 int rm;
-                bytes.Add(0xfe);
+                bytes.Add((byte)(((Memory)op1).size == OPSIZE.Byte ? 0xfe : 0xff));
                 List<byte> membytes = ((Memory)op1).getBytes(out mod, out rm);
                 bytes.Add((byte)(mod * 0x40 + rm));
                 bytes.AddRange(membytes);
@@ -870,13 +889,22 @@ namespace Origami.Asm32
             bytes = new List<byte>();
             if (op1 is Register)
             {
-                bytes.Add((byte)(0x48 + ((Register)op1).code));
+                Register reg1 = (Register)op1;
+                if (reg1.size == OPSIZE.DWord)
+                {
+                    bytes.Add((byte)(0x48 + ((Register)op1).code));
+                }
+                else
+                {
+                    bytes.Add(0xfe);                    
+                    bytes.Add((byte)(0xc8 + reg1.code));
+                }
             }
             else
             {
                 int mod;
                 int rm;
-                bytes.Add(0xfe);
+                bytes.Add((byte)(((Memory)op1).size == OPSIZE.Byte ? 0xfe : 0xff));
                 List<byte> membytes = ((Memory)op1).getBytes(out mod, out rm);
                 bytes.Add((byte)(mod * 0x40 + 0x08 + rm));
                 bytes.AddRange(membytes);
@@ -1687,6 +1715,21 @@ namespace Origami.Asm32
                 bytes.Add(0xea);
                 bytes.AddRange(((Absolute)op1).getBytes());
             }
+            else if (op1 is Memory)
+            {
+                int mod;
+                int rm;
+                bytes.Add(0xff);
+                int reg = (((Memory)op1).size == OPSIZE.DWord) ? 4 : 5;
+                List<byte> membytes = ((Memory)op1).getBytes(out mod, out rm);
+                bytes.Add((byte)(mod * 0x40 + (reg * 8) + rm));
+                bytes.AddRange(membytes);
+            }
+            else if (op1 is Register)
+            {
+                bytes.Add(0xff);
+                bytes.Add((byte)(0xe0 + ((Register)op1).code));
+            }
             else
             {
                 bytes.Add((byte)((((Relative)op1).size == OPSIZE.Byte) ? 0xeb : 0xe9));
@@ -1775,6 +1818,21 @@ namespace Origami.Asm32
             {
                 bytes.Add(0x9a);
                 bytes.AddRange(((Absolute)op1).getBytes());
+            }
+            else if (op1 is Memory)
+            {
+                int mod;
+                int rm;
+                bytes.Add(0xff);
+                int reg = (((Memory)op1).size == OPSIZE.DWord) ? 2 : 3;
+                List<byte> membytes = ((Memory)op1).getBytes(out mod, out rm);
+                bytes.Add((byte)(mod * 0x40 + (reg * 8) + rm));
+                bytes.AddRange(membytes);
+            }
+            else if (op1 is Register)
+            {
+                bytes.Add(0xff);
+                bytes.Add((byte)(0xd0 + ((Register)op1).code));
             }
             else
             {
