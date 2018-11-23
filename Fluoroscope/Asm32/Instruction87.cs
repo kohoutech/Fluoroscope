@@ -29,6 +29,7 @@ namespace Origami.Asm32
 
     //- data xfer -------------------------------------------------------------
 
+    //FLoad - FLD
     public class FLoad : Instruction
     {
         public FLoad(Operand _op1)
@@ -45,9 +46,10 @@ namespace Origami.Asm32
             {
                 int mod;
                 int rm;
-                bytes.Add((byte)((((Memory)op1).size == OPSIZE.DWord) ? 0xd9 : (((Memory)op1).size == OPSIZE.TByte) ? 0xdb : 0xdd));
-                List<byte> membytes = ((Memory)op1).getBytes(out mod, out rm);
-                int reg = (((Memory)op1).size == OPSIZE.TByte) ? 0x28 : 0x00;
+                Memory r1 = (Memory)op1;
+                bytes.Add((byte)((r1.size == OPSIZE.DWord) ? 0xd9 : (r1.size == OPSIZE.TByte) ? 0xdb : 0xdd));
+                List<byte> membytes = r1.getBytes(out mod, out rm);
+                int reg = (r1.size == OPSIZE.TByte) ? 0x28 : 0x00;
                 bytes.Add((byte)(mod * 0x40 + reg + rm));
                 bytes.AddRange(membytes);
             }
@@ -64,6 +66,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FStore - FST/FSTP
     public class FStore : Instruction
     {
         bool pop;
@@ -84,7 +87,7 @@ namespace Origami.Asm32
                 int mod;
                 int rm;
                 Memory r1 = (Memory)op1;
-                bytes.Add((byte)((((Memory)op1).size == OPSIZE.DWord) ? 0xd9 : (((Memory)op1).size == OPSIZE.TByte) ? 0xdb : 0xdd));
+                bytes.Add((byte)((r1.size == OPSIZE.DWord) ? 0xd9 : (r1.size == OPSIZE.TByte) ? 0xdb : 0xdd));
                 int reg = (r1.size == OPSIZE.TByte) ? 0x38 : (pop ? 0x18 : 0x10);
                 List<byte> membytes = r1.getBytes(out mod, out rm);
                 bytes.Add((byte)(mod * 0x40 + reg + rm));
@@ -103,6 +106,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FLoadInteger - FILD
     public class FLoadInteger : Instruction
     {
         public FLoadInteger(Operand _op1)
@@ -139,6 +143,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FStoreInteger - FIST/FISTP/FISTTP
     public class FStoreInteger : Instruction
     {
         bool pop;
@@ -181,6 +186,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FLoadBCD - FBLD
     public class FLoadBCD : Instruction
     {
         public FLoadBCD(Operand _op1)
@@ -202,12 +208,6 @@ namespace Origami.Asm32
                 bytes.Add((byte)(mod * 0x40 + 0x20 + rm));
                 bytes.AddRange(membytes);
             }
-            else
-            {
-                //bytes.Add(0xdb);
-                //int reg = trunc ? 0x08 : (pop ? 0x18 : 0x10);
-                //bytes.Add((byte)(0xc0 + reg + ((Register)op1).code));
-            }
         }
 
         public override string ToString()
@@ -216,6 +216,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FStoreBCD - FBSTP
     public class FStoreBCD : Instruction
     {
         public FStoreBCD(Operand _op1)
@@ -237,12 +238,6 @@ namespace Origami.Asm32
                 bytes.Add((byte)(mod * 0x40 + 0x30 + rm));
                 bytes.AddRange(membytes);
             }
-            else
-            {
-                //bytes.Add(0xdb);
-                //int reg = trunc ? 0x08 : (pop ? 0x18 : 0x10);
-                //bytes.Add((byte)(0xc0 + reg + ((Register)op1).code));
-            }
         }
 
         public override string ToString()
@@ -251,6 +246,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FExchange - FXCH
     public class FExchange : Instruction
     {
         public FExchange(Operand _op1)
@@ -273,6 +269,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FConditionalMove - FCMOVB/FCMOVBE/FCMOVE/FCMOVNB/FCMOVNBE/FCMOVNE/FCMOVNU/FCMOVU
     public class FConditionalMove : Instruction
     {
         public enum CONDIT { MOVB, MOVE, MOVBE, MOVU, MOVNB, MOVNE, MOVNBE, MOVNU };
@@ -332,6 +329,7 @@ namespace Origami.Asm32
 
     //- arithmetic ----------------------------------------------------------------
 
+    //FAdd - FADD/FADDP/FIADD
     public class FAdd : Instruction
     {
         bool intop;
@@ -449,6 +447,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FMultiply - FMUL/FMULP/FIMUL
     public class FMulitply : Instruction
     {
         bool intop;
@@ -499,6 +498,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FDivide - FDIV/FDIVP/FDIVR/FDIVRP/FIDIV/FIDIVR
     public class FDivide : Instruction
     {
         bool intop;
@@ -536,7 +536,7 @@ namespace Origami.Asm32
                 {
                     bytes.Add(0xde);
                     bytes.Add((byte)((reverse ? 0xf0 : 0xf8) + ((Register)op1).code));
-                } 
+                }
                 else if (((Register)op1).code == 0)
                 {
                     bytes.Add(0xd8);
@@ -549,7 +549,7 @@ namespace Origami.Asm32
                 }
             }
         }
-        
+
         public override string ToString()
         {
             String result = (intop ? "FIDIV" : "FDIV");
@@ -565,13 +565,15 @@ namespace Origami.Asm32
         }
     }
 
+    //FRemainder - FPREM/FPREM1
     public class FRemainder : Instruction
     {
         public enum MODE { ROUND0, ROUND1 };
 
         public MODE mode;
 
-        public FRemainder(MODE _mode) : base()
+        public FRemainder(MODE _mode)
+            : base()
         {
             mode = _mode;
         }
@@ -587,6 +589,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FAbsolute - FABS
     public class FAbsolute : Instruction
     {
         public override void generateBytes()
@@ -600,11 +603,12 @@ namespace Origami.Asm32
         }
     }
 
+    //FChangeSign - FCHS
     public class FChangeSign : Instruction
     {
         public override void generateBytes()
         {
-            bytes = new List<byte>() {0xd9, 0xe0};
+            bytes = new List<byte>() { 0xd9, 0xe0 };
         }
 
         public override string ToString()
@@ -613,6 +617,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FRound - FRNDINT
     public class FRound : Instruction
     {
         public override void generateBytes()
@@ -626,6 +631,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FScale - FSCALE
     public class FScale : Instruction
     {
         public override void generateBytes()
@@ -638,6 +644,8 @@ namespace Origami.Asm32
             return "FSCALE";
         }
     }
+
+    //FSquareRoot - FSQRT
     public class FSquareRoot : Instruction
     {
         public override void generateBytes()
@@ -651,6 +659,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FExtract - FXTRACT
     public class FExtract : Instruction
     {
         public override void generateBytes()
@@ -833,6 +842,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FTest - FTST
     public class FTest : Instruction
     {
         public override void generateBytes()
@@ -846,6 +856,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FExamine - FXAM
     public class FExamine : Instruction
     {
         public override void generateBytes()
@@ -861,6 +872,7 @@ namespace Origami.Asm32
 
     //- trig / log -------------------------------------------------------------
 
+    //FSine - FSIN
     public class FSine : Instruction
     {
         public override void generateBytes()
@@ -874,6 +886,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FCosine - FCOS
     public class FCosine : Instruction
     {
         public override void generateBytes()
@@ -887,6 +900,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FSineCosine - FSINCOS
     public class FSineCosine : Instruction
     {
         public override void generateBytes()
@@ -900,6 +914,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FTangent - FPTAN
     public class FTangent : Instruction
     {
         public override void generateBytes()
@@ -914,6 +929,7 @@ namespace Origami.Asm32
 
     }
 
+    //FArcTangent - FPATAN
     public class FArcTangent : Instruction
     {
         public override void generateBytes()
@@ -928,6 +944,7 @@ namespace Origami.Asm32
 
     }
 
+    //F2XM1 - F2XM1
     public class F2XM1 : Instruction
     {
         public override void generateBytes()
@@ -941,6 +958,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FYL2X - FYL2X
     public class FYL2X : Instruction
     {
         public override void generateBytes()
@@ -954,6 +972,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FYL2XPi - FYL2XP1
     public class FYL2XP1 : Instruction
     {
         public override void generateBytes()
@@ -969,6 +988,7 @@ namespace Origami.Asm32
 
     //- constants -------------------------------------------------------------
 
+    //FLoadConstant - FLD1/FLDZ/FLDPI/FLDL2E/FLDLN2/FLDL2T/FLDLG2
     public class FLoadConstant : Instruction
     {
         public enum CONSTOP { ONE, LOG210, LOG2E, PI, LOG102, LOGE2, ZERO };
@@ -1018,6 +1038,7 @@ namespace Origami.Asm32
 
     //- control operations --------------------------------------------------------
 
+    //FIncrement - FINCSTP
     public class FIncrement : Instruction
     {
         public override void generateBytes()
@@ -1031,6 +1052,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FDecrement - FDECSTP
     public class FDecrement : Instruction
     {
         public override void generateBytes()
@@ -1044,6 +1066,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FFreeRegister - FFREE/FFREEP
     public class FFreeRegister : Instruction
     {
         bool pop;
@@ -1071,6 +1094,7 @@ namespace Origami.Asm32
     }
 
 
+    //FInitialize - FINIT/FNINIT
     public class FInitialize : Instruction
     {
         public override void generateBytes()
@@ -1084,6 +1108,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FClearExceptions - FCLEX/FNCLEX
     public class FClearExceptions : Instruction
     {
         public override void generateBytes()
@@ -1097,6 +1122,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FStoreControlWord - FSTCW/FNSTCW
     public class FStoreControlWord : Instruction
     {
         public FStoreControlWord(Operand _op1)
@@ -1131,6 +1157,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FLoadControlWord - FLDCW
     public class FLoadControlWord : Instruction
     {
         public FLoadControlWord(Operand _op1)
@@ -1165,6 +1192,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FStorenvironment - FSTENV/FNSTENV
     public class FStoreEnvironment : Instruction
     {
         public FStoreEnvironment(Operand _op1)
@@ -1199,6 +1227,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FLoadEnvironment - FLDENV
     public class FLoadEnvironment : Instruction
     {
         public FLoadEnvironment(Operand _op1)
@@ -1233,6 +1262,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FSaveState - FSAVE/FNSAVE
     public class FSaveState : Instruction
     {
         public FSaveState(Operand _op1)
@@ -1262,6 +1292,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FRestoreState - FRSTOR
     public class FRestoreState : Instruction
     {
         public FRestoreState(Operand _op1)
@@ -1291,7 +1322,7 @@ namespace Origami.Asm32
         }
     }
 
-
+    //FStoreStatusWord - FSTSW/FNSTSW 
     public class FStoreStatusWord : Instruction
     {
         public FStoreStatusWord(Operand _op1)
@@ -1325,6 +1356,7 @@ namespace Origami.Asm32
         }
     }
 
+    //FNoOp - FNOP/FNDISI/FNENI/FNSETPM
     public class FNoOp : Instruction
     {
         public enum NOPTYPE { FNOP, FENI, FDISI, FSETPM };
